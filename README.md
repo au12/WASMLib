@@ -72,7 +72,23 @@ npm test                                 # WASMLib's own checks of its JavaScrip
 WASMLib was built to compare SMLib with OpenCascade inside [DadCAD](https://github.com/au12/DadCAD), whose modelling
 engine runs on a kernel interface with interchangeable backends. The full head-to-head — the same parts built by the
 same engine on OpenCascade 7 (opencascade.js), OpenCascade 8 (occt-wasm), WASMLib and smlibwasm — is in DadCAD's
-[`docs/kernel.md`](https://github.com/au12/DadCAD/blob/kernel-interface/docs/kernel.md).
+[`docs/kernel.md`](https://github.com/au12/DadCAD/blob/kernel-interface/docs/kernel.md). In short (November 2026,
+Node 22, median of 3):
+
+| | OpenCascade 7 (opencascade.js) | WASMLib | smlibwasm |
+|---|---:|---:|---:|
+| DadCAD's engine tests (220) | 220 | 220 | 220 |
+| WebAssembly, brotli | 5.7 MB | **2.0 MB** | 2.6 MB |
+| Load | 290 ms | **84 ms** | 130 ms |
+| Box with every edge filleted | **44 ms** | 100 ms | 92 ms |
+| 48 holes cut one at a time | 696 ms | **348 ms** | 523 ms |
+| M8 bolt, real thread: build + STL mesh | 4.9 s | **2.1 s** | 4.4 s |
+| Helical gear | **594 ms** | 1 885 ms | 1 746 ms |
+| STEP export of a filleted box | 51 ms | **40 ms** | 105 ms |
+
+Every part builds valid with the same volume on each. WASMLib beats smlibwasm on 10 of 12 parts. Against OpenCascade
+it wins on meshing and some booleans, but it is 1.2–4× slower on fillets, shells, text and gears. Threads build 15×
+slower, because SMLib has no screw sweep and a twist has to be lofted.
 
 ## What SMLib doesn't do
 
