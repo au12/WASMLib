@@ -1,0 +1,8028 @@
+{
+ "functions": [
+  {
+   "js": "SmApiBoolean",
+   "name": "SmApiBoolean",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success; remains allocated but may be modified",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBooleanOperationType",
+     "name": "lOperation",
+     "ann": "in",
+     "default": null,
+     "note": "specify boolean operation",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Aliases pBrep1 on success; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanUnion",
+   "name": "SmApiBooleanUnion",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success; remains allocated but may be modified",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Aliases pBrep1 on success; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanDifference",
+   "name": "SmApiBooleanDifference",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success; remains allocated but may be modified",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Aliases pBrep1 on success; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanIntersection",
+   "name": "SmApiBooleanIntersection",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success; remains allocated but may be modified",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Aliases pBrep1 on success; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanMerge",
+   "name": "SmApiBooleanMerge",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success; remains allocated but may be modified",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Aliases pBrep1 on success; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiMergeBreps",
+   "name": "SmApiMergeBreps",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmBrep*>&",
+     "name": "rBreps",
+     "ann": "in/out",
+     "default": null,
+     "note": "Two or more unique, non-NULL Breps; consumed after validation",
+     "cross": "inout",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBooleanOperationType",
+     "name": "lOperation",
+     "ann": "in",
+     "default": null,
+     "note": "UNION, INTERSECTION, DIFFERENCE, or MERGE",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanWithCurves",
+   "name": "SmApiBooleanWithCurves",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success; remains allocated but may be modified",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBooleanOperationType",
+     "name": "lOperation",
+     "ann": "in",
+     "default": null,
+     "note": "specify boolean operation",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Aliases pBrep1 on success; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rIntersectionEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Intersection edges from the boolean (on first brep)",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBoolean2d",
+   "name": "SmApiBoolean2d",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Primary Brep; modified and returned on non-empty success",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Second Brep; deleted on non-empty success",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "Sm2DBooleanOperationType",
+     "name": "eOpType",
+     "ann": "in",
+     "default": null,
+     "note": "Operation Type",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Modified pBrep1 on non-empty success; otherwise unchanged",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiTessellate",
+   "name": "SmApiTessellate",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmPolyBrep",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmTessellationParams&",
+     "name": "rParams",
+     "ann": "in",
+     "default": "SmTessellationParams()",
+     "note": "Quality controls",
+     "cross": "in",
+     "kind": "struct"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bAllowPartial",
+     "ann": "in",
+     "default": "FALSE",
+     "note": "Retain partial meshes when some faces fail",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmTessellationFailure>*",
+     "name": "pFailures",
+     "ann": "out",
+     "default": "nullptr",
+     "note": "First failure per original face",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTessellationReport*",
+     "name": "pReport",
+     "ann": "out",
+     "default": "nullptr",
+     "note": "Nonfatal output topology diagnostics",
+     "cross": "out",
+     "kind": "struct"
+    }
+   ]
+  },
+  {
+   "js": "SmApiTessellateBoundaries",
+   "name": "SmApiTessellateBoundaries",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dAngleTolDeg",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<ULONG>&",
+     "name": "rVertexCounts",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiTurnToNurbs",
+   "name": "SmApiTurnToNurbs",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiProjectBrepOntoPlane",
+   "name": "SmApiProjectBrepOntoPlane",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlanePt",
+     "ann": "in",
+     "default": null,
+     "note": "Point to define position of plane",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlaneNormal",
+     "ann": "in",
+     "default": null,
+     "note": "Direction of projection; must be non-zero, need not be unit",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rProjectionCurves",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting projected curves, appended; on failure the array",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCut",
+   "name": "SmApiCut",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlanePt",
+     "ann": "in",
+     "default": null,
+     "note": "Point to define position of plane",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlaneNormal",
+     "ann": "in",
+     "default": null,
+     "note": "Plane normal; must be non-zero, need not be unit",
+     "cross": "in",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiProjectAndTrim",
+   "name": "SmApiProjectAndTrim",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "rCurveToProject",
+     "ann": "in",
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rProjectionDir",
+     "ann": "in",
+     "default": null,
+     "note": "Direction of projection; must be non-zero, need not be unit",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "rRefPt",
+     "ann": "in",
+     "default": null,
+     "note": "Point on the side of the trim to keep",
+     "cross": "in",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSilhouetteCurves",
+   "name": "SmApiCreateSilhouetteCurves",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlanePt",
+     "ann": "in",
+     "default": null,
+     "note": "Unused (debug draw only); silhouette uses rPlaneNormal",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlaneNormal",
+     "ann": "in",
+     "default": null,
+     "note": "Direction of projection; must be non-zero, need not be unit",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rProjectionCurves",
+     "ann": "in/out",
+     "default": null,
+     "note": "New caller-owned curves appended on success; unchanged on failure",
+     "cross": "inout",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiProjectCurve",
+   "name": "SmApiProjectCurve",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pCurveToProject",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to curve to project",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "projectionVector",
+     "ann": "in",
+     "default": null,
+     "note": "Non-zero projection direction; need not be unit",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "r3DCurves",
+     "ann": "in/out",
+     "default": null,
+     "note": "New caller-owned curves appended on success. Unchanged",
+     "cross": "inout",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiProjectCurve_BSplineCurve_Surface",
+   "name": "SmApiProjectCurve",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBSplineCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to drop",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>*",
+     "name": "pOptCurves2d",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting uv curves on surface",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>*",
+     "name": "pOptCurves3d",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting 3d curves on surface",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiStitch",
+   "name": "SmApiStitch",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiStitch_Face",
+   "name": "SmApiStitch",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmFace*",
+     "name": "pFaceToStitch",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to curve to project",
+     "cross": "in",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateLinearSweep",
+   "name": "SmApiCreateLinearSweep",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "rCurvesToSweep",
+     "ann": "in",
+     "default": null,
+     "note": "Curves to sweep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rSweepDir",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep direction",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dSweepDist",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep distance",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "Cap the ends of the result",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateRotationalSweep",
+   "name": "SmApiCreateRotationalSweep",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "rCurvesToSweep",
+     "ann": "in",
+     "default": null,
+     "note": "Curves to sweep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "rBasePt",
+     "ann": "in",
+     "default": null,
+     "note": "Base point of axis",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rAxis",
+     "ann": "in",
+     "default": null,
+     "note": "Direction of axis",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Angle of rotation",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "Cap the ends of the result",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateDraftSweep",
+   "name": "SmApiCreateDraftSweep",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "rCurvesToSweep",
+     "ann": "in",
+     "default": null,
+     "note": "Curves to sweep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Height of sweep or extrusion",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Draft Angle",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCornerType",
+     "ann": "in",
+     "default": null,
+     "note": "0 = SM_OC_LINEAR_EXTENSION, 1 = SM_OC_FILLET_CORNER",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "int",
+     "name": "iCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "0 = none, 1 = at curves, 2 = at offset, 3 = both ends",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePipeSweep",
+   "name": "SmApiCreatePipeSweep",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "double",
+     "name": "dPipeRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pPathCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Path Curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSweepAlongPlanarPath",
+   "name": "SmApiCreateSweepAlongPlanarPath",
+   "header": "SmApiBrep.h",
+   "doc": "Contains high level \"C\" type functions that operate on SmBreps. GENERAL",
+   "params": [
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rProfileCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Coplanar profile boundary curves",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rPathCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Ordered, endpoint-connected curves forming an open or",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bMoveProfile",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE anchors the profile bounding-box center to the path",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "int",
+     "name": "iCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "0 = none, 1 = profile/start, 2 = far/path, 3 = both ends;",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "New SmBrep; inputs unchanged; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCurveSweep",
+   "name": "SmApiCreateCurveSweep",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rProfileCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Profile curves to sweep along path",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pPathCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Path curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pScaleReference",
+     "ann": "in",
+     "default": null,
+     "note": "Scale reference curve (NULL for none)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pScaleCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Scale curve (NULL for none)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSweepOptions*",
+     "name": "pOptions",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep options (NULL for defaults)",
+     "cross": "in",
+     "kind": "struct"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptStartFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Start cap faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptSideFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Side faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptEndFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "End cap faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCurveSweepFromFaces",
+   "name": "SmApiCreateCurveSweepFromFaces",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmFace*>&",
+     "name": "rFaces",
+     "ann": "in",
+     "default": null,
+     "note": "Faces whose edge loops to sweep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pPathCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Path curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pScaleReference",
+     "ann": "in",
+     "default": null,
+     "note": "Scale reference curve (NULL for none)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pScaleCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Scale curve (NULL for none)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSweepOptions*",
+     "name": "pOptions",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep options (NULL for defaults)",
+     "cross": "in",
+     "kind": "struct"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptStartFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Start cap faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptSideFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Side faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptEndFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "End cap faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCurveSweepFromEdges",
+   "name": "SmApiCreateCurveSweepFromEdges",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "in",
+     "default": null,
+     "note": "Edges whose curves to sweep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pPathCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Path curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pScaleReference",
+     "ann": "in",
+     "default": null,
+     "note": "Scale reference curve (NULL for none)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pScaleCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Scale curve (NULL for none)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSweepOptions*",
+     "name": "pOptions",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep options (NULL for defaults)",
+     "cross": "in",
+     "kind": "struct"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptStartFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Start cap faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptSideFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Side faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptEndFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "End cap faces (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateTaperExtrude",
+   "name": "SmApiCreateTaperExtrude",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "rCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Coplanar curves to extrude",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Extrusion height (+/- for direction)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dDraftAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Draft angle: 0-90 inner, 90-180 outer",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "int",
+     "name": "iEndCaps",
+     "ann": "in",
+     "default": null,
+     "note": "0=none, 1=at curves, 2=at offset, 3=both ends",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bFilletCorner",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = fillet corners, FALSE = linear extension",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateLinearSweepWithRepetitions",
+   "name": "SmApiCreateLinearSweepWithRepetitions",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "rCurvesToSweep",
+     "ann": "in",
+     "default": null,
+     "note": "Curves to sweep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rSweepDir",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep direction",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dSweepDist",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep distance",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "nRepetitions",
+     "ann": "in",
+     "default": null,
+     "note": "Number of end-to-end sweeps",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "Cap the ends of the result",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateRotationalSweepWithRepetitions",
+   "name": "SmApiCreateRotationalSweepWithRepetitions",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "rCurvesToSweep",
+     "ann": "in",
+     "default": null,
+     "note": "Curves to sweep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "rBasePt",
+     "ann": "in",
+     "default": null,
+     "note": "Base point of axis",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rAxis",
+     "ann": "in",
+     "default": null,
+     "note": "Direction of axis",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Angle of rotation",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "nRepetitions",
+     "ann": "in",
+     "default": null,
+     "note": "Number of end-to-end revolutions",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "Cap the ends of the result",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiNonManifoldSweep",
+   "name": "SmApiNonManifoldSweep",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrepToSweep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Brep containing topology to sweep; modified in place",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pRegionBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Target region's Brep. NULL or pBrepToSweep; any other",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rSweepDir",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep direction vector",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dSweepDist",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep distance",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoStitching",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = stitch after sweep",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoMerge",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = merge (catches self-intersections)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Faces to sweep into solids, NULL to ignore faces",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmEdge*>*",
+     "name": "pOptEdges",
+     "ann": "opt",
+     "default": null,
+     "note": "Edges to sweep into faces, NULL to ignore edges",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmVertex*>*",
+     "name": "pOptVertices",
+     "ann": "opt",
+     "default": null,
+     "note": "Vertices to sweep into edges, NULL to ignore vertices;",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiNonManifoldRotationalSweep",
+   "name": "SmApiNonManifoldRotationalSweep",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrepToSweep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Brep containing topology to sweep; modified in place",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pRegionBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Target region's Brep. NULL or pBrepToSweep; any other",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "rBasePt",
+     "ann": "in",
+     "default": null,
+     "note": "Rotation axis base point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rAxis",
+     "ann": "in",
+     "default": null,
+     "note": "Rotation axis direction",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Angle of rotation in degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoStitching",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = stitch after sweep",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoMerge",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = merge (catches self-intersections)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Faces to sweep into solids, NULL to ignore faces",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmEdge*>*",
+     "name": "pOptEdges",
+     "ann": "opt",
+     "default": null,
+     "note": "Edges to sweep into faces, NULL to ignore edges",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmVertex*>*",
+     "name": "pOptVertices",
+     "ann": "opt",
+     "default": null,
+     "note": "Vertices to sweep into edges, NULL to ignore vertices;",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanWithOptions",
+   "name": "SmApiBooleanWithOptions",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success unless kept (see the Boolean notes",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBooleanOperationType",
+     "name": "eOperation",
+     "ann": "in",
+     "default": null,
+     "note": "Boolean operation type",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCookieCutter",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = only remove faces from BrepA",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bImprinting",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = imprint intersection on BrepA and quit",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bBooleanPostProcess",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = remove topological edges/vertices after boolean",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bImprintAndClassifyFaces",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = imprint and mark faces to be deleted",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bKeepOtherBrep",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = do not delete BrepB",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiNonManifoldBoolean",
+   "name": "SmApiNonManifoldBoolean",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Modified in place and returned as rpResult on success;",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Deleted on success unless kept (see the Boolean notes",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBooleanOperationType",
+     "name": "eOperation",
+     "ann": "in",
+     "default": null,
+     "note": "Boolean operation type",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPiecewiseMerge",
+   "name": "SmApiPiecewiseMerge",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Primary brep; modified and returned as rpResult",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in/out",
+     "default": null,
+     "note": "Second brep; imprinted but not deleted; must",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCreateNewBrepsForFaces",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = treat each other face as a sheet face",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanLists",
+   "name": "SmApiBooleanLists",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmBrep*>&",
+     "name": "rBreps1",
+     "ann": "in",
+     "default": null,
+     "note": "First list of breps",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<SmSurface*>&",
+     "name": "rSurfaces1",
+     "ann": "in",
+     "default": null,
+     "note": "First list of surfaces (for planar 2D)",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<SmBrep*>&",
+     "name": "rBreps2",
+     "ann": "in",
+     "default": null,
+     "note": "Second list of breps",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<SmSurface*>&",
+     "name": "rSurfaces2",
+     "ann": "in",
+     "default": null,
+     "note": "Second list of surfaces (for planar 2D)",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "int",
+     "name": "operation",
+     "ann": "in",
+     "default": null,
+     "note": "0=AND, 1=OR, 2=XOR, 3=A-B, 4=B-A",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmBrep*>&",
+     "name": "rResultBreps",
+     "ann": "out",
+     "default": null,
+     "note": "Output breps",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmSurface*>&",
+     "name": "rResultSurfaces",
+     "ann": "out",
+     "default": null,
+     "note": "Output surfaces (if all inputs 2D)",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBooleanTrees",
+   "name": "SmApiBooleanTrees",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmBrep*>&",
+     "name": "rBreps",
+     "ann": null,
+     "default": null,
+     "note": "[i/o]: Array of breps; result plus unused at end",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<long>&",
+     "name": "rPostFixTrees",
+     "ann": "in",
+     "default": null,
+     "note": "CSG tree in postfix notation",
+     "cross": "in",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFilletEdges",
+   "name": "SmApiFilletEdges",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Brep to fillet",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "in",
+     "default": null,
+     "note": "Edges to fillet",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Fillet radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "lXSectType",
+     "ann": "in",
+     "default": null,
+     "note": "0=linear, 1=circular, 2=blend curve",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "lContinuity",
+     "ann": "in",
+     "default": null,
+     "note": "1=G1, 2=G2, 3=G3 for blend curves; three-edge corner",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dThumbweight",
+     "ann": "in",
+     "default": null,
+     "note": "Thumbweight for blend (default 1.0)",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFilletEdgesPerEdge",
+   "name": "SmApiFilletEdgesPerEdge",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Brep to fillet",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "in",
+     "default": null,
+     "note": "Edges to fillet",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<double>&",
+     "name": "rRadii",
+     "ann": "in",
+     "default": null,
+     "note": "Per-edge radius values",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFilletSurfaceGeneratorType>&",
+     "name": "rXSectTypes",
+     "ann": "in",
+     "default": null,
+     "note": "Per-edge cross section types",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "ULONG",
+     "name": "lContinuity",
+     "ann": "in",
+     "default": null,
+     "note": "1=G1, 2=G2, 3=G3; three-edge corner boundaries",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dThumbweight",
+     "ann": "in",
+     "default": null,
+     "note": "Thumbweight for blend (default 1.0)",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiVariableRadiusFillet",
+   "name": "SmApiVariableRadiusFillet",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Brep to fillet",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "in",
+     "default": null,
+     "note": "Edges to fillet",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dStartRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at start of edge",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dEndRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at end of edge",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "lXSectType",
+     "ann": "in",
+     "default": null,
+     "note": "0=linear, 1=circular, 2=blend curve",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "lContinuity",
+     "ann": "in",
+     "default": null,
+     "note": "1=G1, 2=G2, 3=G3 for blend curves; three-edge corner",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiSurfaceSurfaceFillet",
+   "name": "SmApiSurfaceSurfaceFillet",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmSurface*",
+     "name": "pSurface1",
+     "ann": "in",
+     "default": null,
+     "note": "First surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSurface*",
+     "name": "pSurface2",
+     "ann": "in",
+     "default": null,
+     "note": "Second surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRadius1",
+     "ann": "in",
+     "default": null,
+     "note": "Signed radius from surface 1",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadius2",
+     "ann": "in",
+     "default": null,
+     "note": "Signed radius from surface 2",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dTolerance",
+     "ann": "in",
+     "default": null,
+     "note": "Max dist from rails to base surfaces",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Brep with fillet surface(s)",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "ULONG",
+     "name": "lXSectType",
+     "ann": "in",
+     "default": null,
+     "note": "0=linear, 1=approx circular, 2=circular",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bMirror",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = mirror fillet (inside-out)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bComplement",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = complement circular cross section",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFilletPreview",
+   "name": "SmApiFilletPreview",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep with fillet setup",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "in",
+     "default": null,
+     "note": "Edges to preview fillet for",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Fillet radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmSurface*>&",
+     "name": "rPreviewSurfaces",
+     "ann": "out",
+     "default": null,
+     "note": "Preview fillet surfaces",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiSetBevelCorners",
+   "name": "SmApiSetBevelCorners",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Brep to fillet",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "in",
+     "default": null,
+     "note": "Edges to fillet",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Fillet radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmVertex*>&",
+     "name": "rBevelVertices",
+     "ann": "in",
+     "default": null,
+     "note": "Vertices to bevel",
+     "cross": "in",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiShellBrepFull",
+   "name": "SmApiShellBrepFull",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to shell; left unchanged",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dOffsetDistance",
+     "ann": "in",
+     "default": null,
+     "note": "Offset distance",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoExtendedOffset",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = extend/intersect convex edges",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoSelfInt",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = handle self-intersections",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCreateOffsetSolid",
+     "ann": "in",
+     "default": null,
+     "note": "For sheet bodies, TRUE = ruled surfaces between lamina",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "const SmTArray<const SmFace*>&",
+     "name": "rFacesToShell",
+     "ann": "in",
+     "default": null,
+     "note": "Faces from pBrep to shell; left unchanged",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "New shell, or NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiOffsetBrepFull",
+   "name": "SmApiOffsetBrepFull",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to offset",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dOffsetDistance",
+     "ann": "in",
+     "default": null,
+     "note": "Offset distance",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoExtendedOffset",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = extend/intersect convex edges",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bDoSelfInt",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = handle self-intersections",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting offset",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiStitchIntoSolid",
+   "name": "SmApiStitchIntoSolid",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to stitch",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean&",
+     "name": "rbProducesASolid",
+     "ann": "out",
+     "default": null,
+     "note": "TRUE if result is manifold solid",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG&",
+     "name": "rlStitchedEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Number of edges stitched",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxVertexGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max vertex gap",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxEdgeGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max edge gap",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiStitchIntoShell",
+   "name": "SmApiStitchIntoShell",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to stitch",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean&",
+     "name": "rbShellIsWellFormed",
+     "ann": "in",
+     "default": null,
+     "note": "Stitching mode, not a result: pass TRUE only for a",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dMaxStitchingRatio",
+     "ann": "in",
+     "default": null,
+     "note": "Max allowed separation, an absolute distance in model",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG&",
+     "name": "rlStitchedEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Number of edges stitched",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxVertexGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max vertex gap",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxEdgeGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max edge gap",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiUnifyNormals",
+   "name": "SmApiUnifyNormals",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to orient",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmFace*",
+     "name": "pStartFace",
+     "ann": "in",
+     "default": null,
+     "note": "Face to use as orientation reference",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "ULONG",
+     "name": "lNumSamples",
+     "ann": "in",
+     "default": null,
+     "note": "Number of samples for ray classification",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmFace*>&",
+     "name": "rFlippedFaces",
+     "ann": "out",
+     "default": null,
+     "note": "Faces whose normals were flipped",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiSimpleFaceStitch",
+   "name": "SmApiSimpleFaceStitch",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to stitch",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmTArray<SmFace*>&",
+     "name": "rFacesToKeep",
+     "ann": "in",
+     "default": null,
+     "note": "Faces to keep",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<SmFace*>&",
+     "name": "rFacesToDelete",
+     "ann": "in",
+     "default": null,
+     "note": "Matching faces to delete (glued to keeps)",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "ULONG&",
+     "name": "rlStitchedEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Number of edges stitched",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxVertexGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max vertex gap",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxEdgeGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max edge gap",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiStitchAdvanced",
+   "name": "SmApiStitchAdvanced",
+   "header": "SmApiBrep.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to stitch",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dStitchTol3d",
+     "ann": "in",
+     "default": null,
+     "note": "3D tolerance for stitching",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bSqueezeSmallEdges",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = remove edges shorter than tolerance",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bSplitEdgesWithVertices",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = split edges at nearby vertices",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bMakingManifoldSolid",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = only glue lamina edge pairs",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bRemoveLaminarSlivers",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = remove sliver faces before stitching",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG&",
+     "name": "rlStitchedEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Number of edges stitched",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG&",
+     "name": "rlLaminaEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Number of lamina edges remaining",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxVertexGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max vertex gap found",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMaxEdgeGap",
+     "ann": "out",
+     "default": null,
+     "note": "Max edge gap found",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateLineSegment",
+   "name": "SmApiCreateLineSegment",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crStartPt",
+     "ann": "in",
+     "default": null,
+     "note": "Start Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crEndPt",
+     "ann": "in",
+     "default": null,
+     "note": "End Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmLine*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmLine",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateLine",
+   "name": "SmApiCreateLine",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crStartPt",
+     "ann": "in",
+     "default": null,
+     "note": "Start Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "crDirection",
+     "ann": "in",
+     "default": null,
+     "note": "Direction vector",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmLine*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmLine",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCircle",
+   "name": "SmApiCreateCircle",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCenterPt",
+     "ann": "in",
+     "default": null,
+     "note": "Start Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBSplineCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCircle_Circle",
+   "name": "SmApiCreateCircle",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCenterPt",
+     "ann": "in",
+     "default": null,
+     "note": "Start Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmCircle*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmCircle",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateEllipse",
+   "name": "SmApiCreateEllipse",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Origin of the ellipse",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius1",
+     "ann": "in",
+     "default": null,
+     "note": "Dist from origin to ellipse circumference in XAxis direction",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadius2",
+     "ann": "in",
+     "default": null,
+     "note": "Dist from origin to ellipse circumference in YAxis direction",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmEllipse*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmEllipse",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateArc",
+   "name": "SmApiCreateArc",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCenterPt",
+     "ann": "in",
+     "default": null,
+     "note": "Start Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dStartAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Start Angle in Degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dEndAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "End Angle in Degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBSplineCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateHelix",
+   "name": "SmApiCreateHelix",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Base point (finite); helix runs along +Z over [Z, Z+dHeight]",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Axial length along +Z. Range [1e-7, 1e18]",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusStart",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at the base. Range [1e-7, 1e18] (zero rejected)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusEnd",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at the top; != start gives a cone. Range [1e-7, 1e18]",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dNumTurns",
+     "ann": "in",
+     "default": null,
+     "note": "360-degree turns over the height (fractions OK). Range [1e-7, 124.25]",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bRightHanded",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = right handed, FALSE = left handed",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dTolerance",
+     "ann": "in",
+     "default": null,
+     "note": "Max deviation of the B-spline fit from the true helix. Range [1e-6, 1e18]",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBSplineCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve; set to NULL and only valid when",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateRectangle",
+   "name": "SmApiCreateRectangle",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCenterPt",
+     "ann": "in",
+     "default": null,
+     "note": "Center Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dLength",
+     "ann": "in",
+     "default": null,
+     "note": "Length along X axis",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dWidth",
+     "ann": "in",
+     "default": null,
+     "note": "Width along Y axis",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateRegularPolygon",
+   "name": "SmApiCreateRegularPolygon",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCenterPt",
+     "ann": "in",
+     "default": null,
+     "note": "Center Point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "ULONG",
+     "name": "nSides",
+     "ann": "in",
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of circumscribed  circle",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCurve",
+   "name": "SmApiCreateCurve",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmPoint3d>&",
+     "name": "crPoints",
+     "ann": "in",
+     "default": null,
+     "note": "Points",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBSplineCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCanonicalCurve",
+   "name": "SmApiCreateCanonicalCurve",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmPoint3d>&",
+     "name": "crPoints",
+     "ann": "in",
+     "default": null,
+     "note": "Points",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<double>&",
+     "name": "crKnots",
+     "ann": "in",
+     "default": null,
+     "note": "Knots",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<ULONG>&",
+     "name": "crKnotMultiplicities",
+     "ann": "in",
+     "default": null,
+     "note": "Knots multiplicities of the end knots must be lDegree+1 and",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<double>*",
+     "name": "crWeights",
+     "ann": "in",
+     "default": null,
+     "note": "Weights - optional",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "ULONG",
+     "name": "lDegree",
+     "ann": "in",
+     "default": null,
+     "note": "Degree",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBSplineCurveForm",
+     "name": "eBSplineCurveForm",
+     "ann": "in",
+     "default": null,
+     "note": "SM_CF_POLYLINE_FORM,  SM_CF_PARABOLIC_ARC,",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBSplineCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCurveApproxPoints",
+   "name": "SmApiCreateCurveApproxPoints",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmPoint3d>&",
+     "name": "crPoints",
+     "ann": "in",
+     "default": null,
+     "note": "Points",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmCurve",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCurveInterpPoints",
+   "name": "SmApiCreateCurveInterpPoints",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmPoint3d>&",
+     "name": "crPoints",
+     "ann": "in",
+     "default": null,
+     "note": "Points: >= 4, all finite; distinct if distance-based",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmCurve",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "SmCurveParameterizationType",
+     "name": "eParameterization",
+     "ann": "in",
+     "default": "SM_CP_UNIFORM",
+     "note": "Knot parameterization of the fit",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiOffsetCurve",
+   "name": "SmApiOffsetCurve",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pCurveToOffset",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to offset, in its own plane; a straight curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dOffsetDistance",
+     "ann": "in",
+     "default": null,
+     "note": "Distance of offset ( positive to right of input curve",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBSplineCurve*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineCurve",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEvaluateCurve",
+   "name": "SmApiEvaluateCurve",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to evaluate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dParameter",
+     "ann": "in",
+     "default": null,
+     "note": "Parameter at which to evaluate",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmVector3d*&",
+     "name": "crPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Opt - Resulting Point at this parameter",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d*&",
+     "name": "crDeriv1",
+     "ann": "out",
+     "default": null,
+     "note": "Opt - First Derivative (tangent) at this parameter",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d*&",
+     "name": "crDeriv2",
+     "ann": "opt",
+     "default": null,
+     "note": "- Second Derivative at this parameter",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEvaluateContinuity",
+   "name": "SmApiEvaluateContinuity",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to evaluate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dParameter",
+     "ann": "in",
+     "default": null,
+     "note": "Parameter at which to evaluate",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmContinuityType&",
+     "name": "crType",
+     "ann": "out",
+     "default": null,
+     "note": "Continuity at this parameter; valid on success",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiDropCurveToSrf",
+   "name": "SmApiDropCurveToSrf",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to drop",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>*",
+     "name": "pOptCurves2d",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting uv curves on surface (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>*",
+     "name": "pOptCurves3d",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting 3d curves on surface (NULL to ignore);",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiLiftUVCurveFromSrf",
+   "name": "SmApiLiftUVCurveFromSrf",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBSplineCurve*",
+     "name": "pUVCurve",
+     "ann": "in",
+     "default": null,
+     "note": "UV curve to lift",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>*",
+     "name": "pCurves3d",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting 3d curves on surface",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiMakeCurvesCompatible",
+   "name": "SmApiMakeCurvesCompatible",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmBSplineCurve*>&",
+     "name": "pCurves",
+     "ann": "in/out",
+     "default": null,
+     "note": "NURBS curves; modified in place, possibly only partly",
+     "cross": "inout",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiOrderCurves",
+   "name": "SmApiOrderCurves",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmBSplineCurve*>&",
+     "name": "pCurves",
+     "ann": "in/out",
+     "default": null,
+     "note": "Curves; on success reordered in place into loop",
+     "cross": "inout",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiRemoveCurveKnots",
+   "name": "SmApiRemoveCurveKnots",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmCurve*",
+     "name": "pCurve",
+     "ann": "in/out",
+     "default": null,
+     "note": "Curve to simplify",
+     "cross": "inout",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiConvertToLinesAndArcs",
+   "name": "SmApiConvertToLinesAndArcs",
+   "header": "SmApiCurves.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to convert; must not be degenerate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmBSplineCurve*>&",
+     "name": "pLinesAndArcs",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting pieces (array is reset first); a line, an arc,",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiChamferFillet",
+   "name": "SmApiChamferFillet",
+   "header": "SmApiFillets.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Chamfer width across the chamfer face, not the setback along each face",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCircularFillet",
+   "name": "SmApiCircularFillet",
+   "header": "SmApiFillets.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of circular fillet",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiRemoveFillet",
+   "name": "SmApiRemoveFillet",
+   "header": "SmApiFillets.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateContext",
+   "name": "SmApiCreateContext",
+   "header": "SmApiGeneral.h",
+   "doc": "",
+   "params": []
+  },
+  {
+   "js": "SmApiGetOrCreateContext",
+   "name": "SmApiGetOrCreateContext",
+   "header": "SmApiGeneral.h",
+   "doc": "",
+   "params": []
+  },
+  {
+   "js": "SmApiTransform",
+   "name": "SmApiTransform",
+   "header": "SmApiGeneral.h",
+   "doc": "Contains popular high level \"C\" type functions of general use. GENERAL",
+   "params": [
+    {
+     "type": "SmObject*",
+     "name": "pObj",
+     "ann": "in",
+     "default": null,
+     "note": "Object to transform",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmAxis2Placement&",
+     "name": "rRotateMove",
+     "ann": "in",
+     "default": null,
+     "note": "Transformation (rotate and translate)",
+     "cross": "in",
+     "kind": "struct"
+    }
+   ]
+  },
+  {
+   "js": "SmApiScale",
+   "name": "SmApiScale",
+   "header": "SmApiGeneral.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmObject*",
+     "name": "pObj",
+     "ann": "in",
+     "default": null,
+     "note": "Object to scale",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rScale",
+     "ann": "in",
+     "default": null,
+     "note": "Scale factor in x, y, z",
+     "cross": "in",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiScaleByPt",
+   "name": "SmApiScaleByPt",
+   "header": "SmApiGeneral.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmObject*",
+     "name": "pObj",
+     "ann": "in",
+     "default": null,
+     "note": "Object to scale",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rRefPt",
+     "ann": "in",
+     "default": null,
+     "note": "Point about which to scale",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rScale",
+     "ann": "in",
+     "default": null,
+     "note": "Scale factor in x, y, z",
+     "cross": "in",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiTranslate",
+   "name": "SmApiTranslate",
+   "header": "SmApiGeneral.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmObject*",
+     "name": "pObj",
+     "ann": "in",
+     "default": null,
+     "note": "Object to translate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "crTranslate",
+     "ann": "in",
+     "default": null,
+     "note": "Translation vector",
+     "cross": "in",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiRotate",
+   "name": "SmApiRotate",
+   "header": "SmApiGeneral.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmObject*",
+     "name": "pObj",
+     "ann": "in",
+     "default": null,
+     "note": "Object to rotate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rRefPt",
+     "ann": "in",
+     "default": null,
+     "note": "Point on the rotation axis",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rAxis",
+     "ann": "in",
+     "default": null,
+     "note": "Rotation axis direction",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Angle of rotation, in degrees",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiHealBrep",
+   "name": "SmApiHealBrep",
+   "header": "SmApiHeal.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in/out",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "inout",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiReadBrepFromFile",
+   "name": "SmApiReadBrepFromFile",
+   "header": "SmApiImportExport.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const TCHAR*",
+     "name": "pFileName",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "str"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bAscii",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bRebuildUVTrimCurves",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpBrep",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiWriteBrepToFile",
+   "name": "SmApiWriteBrepToFile",
+   "header": "SmApiImportExport.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const TCHAR*",
+     "name": "pFileName",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "str"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bAscii",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiReadPartFromFile",
+   "name": "SmApiReadPartFromFile",
+   "header": "SmApiImportExport.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const TCHAR*",
+     "name": "pFileName",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "str"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bAscii",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rCurves",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmSurface*>&",
+     "name": "rSurfaces",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<long>&",
+     "name": "rBooleanTreeNodes",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmBrep*>&",
+     "name": "rBreps",
+     "ann": null,
+     "default": null,
+     "note": "",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectCurves",
+   "name": "SmApiIntersectCurves",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmCurve*",
+     "name": "pCurve1",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to intersect",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmCurve*",
+     "name": "pCurve2",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to intersect",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>*",
+     "name": "p3DPoints",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting intersection points",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<double>*",
+     "name": "parametersOnCurve1",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting parameters on first curve",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<double>*",
+     "name": "parametersOnCurve2",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting parameters on second curve",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectSurfaces",
+   "name": "SmApiIntersectSurfaces",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmSurface*",
+     "name": "pSurface1",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to intersect",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSurface*",
+     "name": "pSurface2",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to intersect",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmCurve*>*",
+     "name": "p3DCurves",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting 3d curves",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectFaces",
+   "name": "SmApiIntersectFaces",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmFace*",
+     "name": "pFace1",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to first face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmFace*",
+     "name": "pFace2",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to other face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "r3DCurves",
+     "ann": "out",
+     "default": null,
+     "note": "Caller-owned intersection curves; empty on failure.",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>*",
+     "name": "pOpt3DPoints",
+     "ann": "opt",
+     "default": null,
+     "note": "Intersection points; reset on entry and empty on failure",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectBreps",
+   "name": "SmApiIntersectBreps",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep1",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep2",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to other brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rCurves3d",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting 3d intersection curves",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>*",
+     "name": "pOptPoints3d",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting 3d intersection points",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectBrepWithPlane",
+   "name": "SmApiIntersectBrepWithPlane",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlanePt",
+     "ann": "in",
+     "default": null,
+     "note": "Point to define position of plane",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rPlaneNormal",
+     "ann": "in",
+     "default": null,
+     "note": "Plane normal; must be non-zero, need not be unit",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rSectionCurves",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting section curves, appended to the array",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectCurveSurface",
+   "name": "SmApiIntersectCurveSurface",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rCurves",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting intersection curves",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting intersection points",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectCurveFace",
+   "name": "SmApiIntersectCurveFace",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to face; hits outside its trim loops are dropped",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rCurves",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting intersection curves (overlaps). An overlap is kept",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting intersection points",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiIntersectCurveBrep",
+   "name": "SmApiIntersectCurveBrep",
+   "header": "SmApiIntersectors.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rCurves",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting intersection curves (overlaps), appended. As for",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting intersection points, appended; a point on a shared",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBoolean",
+   "name": "SmApiPolyBoolean",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Primary brep; modified and returned as rpResult",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep2",
+     "ann": "in/out",
+     "default": null,
+     "note": "Second brep; deleted on success (see contract above)",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBooleanOperationType",
+     "name": "lOperation",
+     "ann": "in",
+     "default": null,
+     "note": "specify boolean operation",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmPolyBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBooleanUnion",
+   "name": "SmApiPolyBooleanUnion",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Primary brep; modified and returned as rpResult",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep2",
+     "ann": "in/out",
+     "default": null,
+     "note": "Second brep; deleted on success (see contract above)",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBooleanDifference",
+   "name": "SmApiPolyBooleanDifference",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Primary brep; modified and returned as rpResult",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep2",
+     "ann": "in/out",
+     "default": null,
+     "note": "Second brep; deleted on success (see contract above)",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBooleanIntersection",
+   "name": "SmApiPolyBooleanIntersection",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Primary brep; modified and returned as rpResult",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep2",
+     "ann": "in/out",
+     "default": null,
+     "note": "Second brep; deleted on success (see contract above)",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBooleanMerge",
+   "name": "SmApiPolyBooleanMerge",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep1",
+     "ann": "in/out",
+     "default": null,
+     "note": "Primary brep; modified and returned as rpResult",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*",
+     "name": "pPolyBrep2",
+     "ann": "in/out",
+     "default": null,
+     "note": "Second brep; deleted on success (see contract above)",
+     "cross": "inout",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBrepIsManifoldSolid",
+   "name": "SmApiPolyBrepIsManifoldSolid",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPolyBrep*",
+     "name": "pPolyBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to poly brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean&",
+     "name": "rbIsManifoldSolid",
+     "ann": "out",
+     "default": null,
+     "note": "TRUE = manifold solid (all edges manifold), FALSE = not",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBrepComputeVolume",
+   "name": "SmApiPolyBrepComputeVolume",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPolyBrep*",
+     "name": "pPolyBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to poly brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double&",
+     "name": "rdVolume",
+     "ann": "out",
+     "default": null,
+     "note": "Enclosed volume",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBrepComputeMassProperties",
+   "name": "SmApiPolyBrepComputeMassProperties",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPolyBrep*",
+     "name": "pPolyBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Mesh to query (closed manifold solid; read-only)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dDensity",
+     "ann": "in",
+     "default": null,
+     "note": "Uniform mass density (mass = density * volume); must be a",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Origin the moments/products are taken about (axes parallel",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double&",
+     "name": "rdArea",
+     "ann": "out",
+     "default": null,
+     "note": "Total surface area",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdVolume",
+     "ann": "out",
+     "default": null,
+     "note": "Enclosed volume",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMass",
+     "ann": "out",
+     "default": null,
+     "note": "Mass = dDensity * volume",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rCentroid",
+     "ann": "out",
+     "default": null,
+     "note": "Mass centroid in world coordinates; independent of crOrigin",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "rMomentsOfInertia",
+     "ann": "out",
+     "default": null,
+     "note": "Mass moments of inertia (Ixx, Iyy, Izz) about axes through",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "rProductsOfInertia",
+     "ann": "out",
+     "default": null,
+     "note": "Mass products of inertia about crOrigin as raw positive",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiPolyBrepCopy",
+   "name": "SmApiPolyBrepCopy",
+   "header": "SmApiPolygons.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPolyBrep*",
+     "name": "pPolyBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Source PolyBrep (not modified)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPolyBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Newly allocated deep copy in the SM_API context",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePlane",
+   "name": "SmApiCreatePlane",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of bottom left corner of plane",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dX",
+     "ann": "in",
+     "default": null,
+     "note": "Distance along X axis of frame",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dY",
+     "ann": "in",
+     "default": null,
+     "note": "Distance along Y axis of frame",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePlane_Plane",
+   "name": "SmApiCreatePlane",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of minU-minV corner",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dLength",
+     "ann": "in",
+     "default": null,
+     "note": "Length along x-axis",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dWidth",
+     "ann": "in",
+     "default": null,
+     "note": "Width along y-axis",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmPlane*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmPlane",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePlanarCircle",
+   "name": "SmApiCreatePlanarCircle",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of bottom left corner of plane",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of circle",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateBox",
+   "name": "SmApiCreateBox",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position at lower left corner of the solid",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dLength",
+     "ann": "in",
+     "default": null,
+     "note": "Distance along the X axis",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dWidth",
+     "ann": "in",
+     "default": null,
+     "note": "Distance along the Y axis",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Distance along the Z axis",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "pResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSphere",
+   "name": "SmApiCreateSphere",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Center of sphere",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Distance radius of sphere",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "pResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCone",
+   "name": "SmApiCreateCone",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusBase",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of base",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusTop",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of top",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Distance bewteen base and top",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCone_Surface",
+   "name": "SmApiCreateCone",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusBase",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at base",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusTop",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at top (for truncated cones)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Height of cone",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmCone",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCylinder",
+   "name": "SmApiCreateCylinder",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of base",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Distance bewteen base and top",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCylinder_Surface",
+   "name": "SmApiCreateCylinder",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Distance bewteen base and top",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmCylinder",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateTorus",
+   "name": "SmApiCreateTorus",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusMajor",
+     "ann": "in",
+     "default": null,
+     "note": "Major Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusMinor",
+     "ann": "in",
+     "default": null,
+     "note": "Minor Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateTorus_Surface",
+   "name": "SmApiCreateTorus",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusMajor",
+     "ann": "in",
+     "default": null,
+     "note": "Major Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusMinor",
+     "ann": "in",
+     "default": null,
+     "note": "Minor Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePyramid",
+   "name": "SmApiCreatePyramid",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dLength",
+     "ann": "in",
+     "default": null,
+     "note": "Length and width",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Height at apex",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateCylindricalBox",
+   "name": "SmApiCreateCylindricalBox",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of origin on Z axis at base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dLength",
+     "ann": "in",
+     "default": null,
+     "note": "Length along Z axis, greater than zero",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dInsideRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Inside radius from Z axis, greater than zero",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dOutsideRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Outside radius from Z axis, greater than inside radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dStartAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Start angle from X axis in XY plane, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dEndAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "End angle from X axis in XY plane, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePartialSphere",
+   "name": "SmApiCreatePartialSphere",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Center of sphere",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of sphere",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dStartAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Start angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dEndAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "End angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSphereNoPole",
+   "name": "SmApiCreateSphereNoPole",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crCenter",
+     "ann": "in",
+     "default": null,
+     "note": "Center of sphere",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius of sphere",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePartialCone",
+   "name": "SmApiCreatePartialCone",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusBase",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at base",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusTop",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at top",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Height of cone",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dStartAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Start angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dEndAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "End angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateConeEllipticEnds",
+   "name": "SmApiCreateConeEllipticEnds",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "double",
+     "name": "dFrontRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at front end (before tilt)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRearRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius at rear end (before tilt)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Distance between end-ellipse centers",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dFrontYTiltDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Front end tilt about X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRearYTiltDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Rear end tilt about X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dFrontXTiltDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Front end tilt about Y axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRearXTiltDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Rear end tilt about Y axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bEndCaps",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = close off end caps",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePartialCylinder",
+   "name": "SmApiCreatePartialCylinder",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of base",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadius",
+     "ann": "in",
+     "default": null,
+     "note": "Radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dHeight",
+     "ann": "in",
+     "default": null,
+     "note": "Height",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dStartAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Start angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dEndAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "End angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePartialTorus",
+   "name": "SmApiCreatePartialTorus",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVector3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Position of center of torus",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusMajor",
+     "ann": "in",
+     "default": null,
+     "note": "Major radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dRadiusMinor",
+     "ann": "in",
+     "default": null,
+     "note": "Minor radius",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dStartAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Start angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dEndAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "End angle in XY plane from X axis, degrees",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateOffsetProfile",
+   "name": "SmApiCreateOffsetProfile",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "rPlanarCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Planar curves forming at least one closed loop",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dOffsetDistance",
+     "ann": "in",
+     "default": null,
+     "note": "Offset distance",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "lOffsetType",
+     "ann": "in",
+     "default": null,
+     "note": "1=LEFT, 2=RIGHT, 3=BOTH",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bRoundCorners",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = round expanding corners, FALSE = extend",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bShellResult",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = shell result (LEFT or RIGHT only)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateBlendPrimitive",
+   "name": "SmApiCreateBlendPrimitive",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep containing the boundary edges",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmEdge*",
+     "name": "pEdge1",
+     "ann": "in",
+     "default": null,
+     "note": "First boundary edge (start of blend)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmFace*",
+     "name": "pFace1",
+     "ann": "in",
+     "default": null,
+     "note": "Target start blend surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmEdge*",
+     "name": "pEdge2",
+     "ann": "in",
+     "default": null,
+     "note": "Second boundary edge (end of blend)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmFace*",
+     "name": "pFace2",
+     "ann": "in",
+     "default": null,
+     "note": "Target end blend surface",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bSameDirCurves",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = start of Edge1->Curve to start of Edge2->Curve",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmFace*&",
+     "name": "rpBlendFace",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting blend face",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSwungPrimitive",
+   "name": "SmApiCreateSwungPrimitive",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rXYCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Curves defining the XY profile",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmCurve*>&",
+     "name": "rXZCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Curves defining the XZ profile",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "double",
+     "name": "dScale",
+     "ann": "in",
+     "default": null,
+     "note": "Scale factor",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSkinPrimitive",
+   "name": "SmApiCreateSkinPrimitive",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<ULONG>&",
+     "name": "rCurvesInEachProfile",
+     "ann": "in",
+     "default": null,
+     "note": "Positive curve counts for at least two profiles;",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<const SmCurve*>&",
+     "name": "r3DCurves",
+     "ann": "in",
+     "default": null,
+     "note": "All profile curve segments concatenated; caller retains",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "ULONG",
+     "name": "lDegree",
+     "ann": "in",
+     "default": null,
+     "note": "Degree in loft direction: 1=linear, 2=quad, 3=cubic",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bCapEnds",
+     "ann": "in",
+     "default": null,
+     "note": "TRUE = cap only the first and last profiles;",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep; NULL on failure",
+     "cross": "out",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptStartFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Start cap faces; empty on failure (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptSideFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "Side loft faces; empty on failure (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmFace*>*",
+     "name": "pOptEndFaces",
+     "ann": "opt",
+     "default": null,
+     "note": "End cap faces; empty on failure (NULL to ignore)",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSkinFromFaces",
+   "name": "SmApiCreateSkinFromFaces",
+   "header": "SmApiPrimitives.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmTArray<SmFace*>&",
+     "name": "rFaces",
+     "ann": "in",
+     "default": null,
+     "note": "Sequence of faces whose loops to loft between",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "ULONG",
+     "name": "lDegree",
+     "ann": "in",
+     "default": null,
+     "note": "Degree in loft direction, 1 to 17 (NL_MAXDEG)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmTArray<SmFace*>&",
+     "name": "rNewFaces",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting lofted faces",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiGetClosestPoint",
+   "name": "SmApiGetClosestPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point to find closest on brep",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rClosestPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Closest point on brep",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "Distance from input point to closest point",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepRelationship",
+   "name": "SmApiBrepRelationship",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrepA",
+     "ann": "in",
+     "default": null,
+     "note": "First Brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmBrep*",
+     "name": "pBrepB",
+     "ann": "in",
+     "default": null,
+     "note": "Second Brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "int&",
+     "name": "rRelationship",
+     "ann": "out",
+     "default": null,
+     "note": "0 separate,1 touching,2 interpenetrating,3 A contains B,4 B in A",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "surface gap; wall clearance when one contains the other; 0 when touching/interpenetrating",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepDistance",
+   "name": "SmApiBrepDistance",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrepA",
+     "ann": "in",
+     "default": null,
+     "note": "First Brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmBrep*",
+     "name": "pBrepB",
+     "ann": "in",
+     "default": null,
+     "note": "Second Brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "surface gap; wall clearance when one contains the other; 0 when touching/interpenetrating",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiGetEdges",
+   "name": "SmApiGetEdges",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Edges of brep",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiGetFaces",
+   "name": "SmApiGetFaces",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<SmFace*>&",
+     "name": "rFaces",
+     "ann": "out",
+     "default": null,
+     "note": "Faces of brep",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFaceGetBoundaryLoops",
+   "name": "SmApiFaceGetBoundaryLoops",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Face to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmTArray<ULONG>&",
+     "name": "rEdgeCountsPerLoop",
+     "ann": "out",
+     "default": null,
+     "note": "Edge-occurrence count for each loop, outer loop first;",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmEdge*>&",
+     "name": "rEdges",
+     "ann": "out",
+     "default": null,
+     "note": "Borrowed Brep-owned edges, flattened loop by loop in",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<SmOrientType>&",
+     "name": "rOrientations",
+     "ann": "out",
+     "default": null,
+     "note": "Orientation per edge occurrence; SM_OT_SAME traverses",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFindEdge",
+   "name": "SmApiFindEdge",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to search",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point on or near edge",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "ULONG&",
+     "name": "rlEdgeIndex",
+     "ann": "out",
+     "default": null,
+     "note": "Index of found edge in brep",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdParam",
+     "ann": "out",
+     "default": null,
+     "note": "Parameter on found edge",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFindFaces",
+   "name": "SmApiFindFaces",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to search",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point on or near face",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmFace*&",
+     "name": "rpFace",
+     "ann": "out",
+     "default": null,
+     "note": "Pointer to found face",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCurveClosestPoint",
+   "name": "SmApiCurveClosestPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point to find closest on curve",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rClosestPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Closest point on curve",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "double&",
+     "name": "rdParameter",
+     "ann": "out",
+     "default": null,
+     "note": "Curve parameter at closest point",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "Distance from input point to closest point",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCurveClosestPointAll",
+   "name": "SmApiCurveClosestPointAll",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point to find closest on curve",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": "out",
+     "default": null,
+     "note": "All closest points on curve",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<double>&",
+     "name": "rParameters",
+     "ann": "out",
+     "default": null,
+     "note": "Curve parameters at each closest point",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<double>&",
+     "name": "rDistances",
+     "ann": "out",
+     "default": null,
+     "note": "Distances from input point to each closest point",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiSurfaceClosestPoint",
+   "name": "SmApiSurfaceClosestPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point to find closest on surface",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rClosestPoint",
+     "ann": "out",
+     "default": null,
+     "note": "One globally closest point on surface",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTArray<SmPoint2d>&",
+     "name": "rUVs",
+     "ann": "out",
+     "default": null,
+     "note": "Nonempty solver-reported natural/NURBS UVs for rClosestPoint;",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "Distance from input point to rClosestPoint",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepClosestPoint",
+   "name": "SmApiBrepClosestPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point to find closest on brep",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rClosestPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Closest point on brep",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "Distance from input point to closest point",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepClosestPointAll",
+   "name": "SmApiBrepClosestPointAll",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to query",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Point to find closest on brep",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": "out",
+     "default": null,
+     "note": "All closest points on brep",
+     "cross": "out",
+     "kind": "arr"
+    },
+    {
+     "type": "SmTArray<double>&",
+     "name": "rDistances",
+     "ann": "out",
+     "default": null,
+     "note": "Distances from input point to each closest point",
+     "cross": "out",
+     "kind": "arr"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepIsManifoldSolid",
+   "name": "SmApiBrepIsManifoldSolid",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean&",
+     "name": "rbIsManifoldSolid",
+     "ann": "out",
+     "default": null,
+     "note": "TRUE = manifold solid, FALSE = not",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepMaterialCensus",
+   "name": "SmApiBrepMaterialCensus",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep (read-only)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "long&",
+     "name": "rlSolidCount",
+     "ann": "out",
+     "default": null,
+     "note": "Number of material (solid) regions; excludes the",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "long&",
+     "name": "rlVoidCount",
+     "ann": "out",
+     "default": null,
+     "note": "Number of enclosed void cavities; excludes the single",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepComputeVolume",
+   "name": "SmApiBrepComputeVolume",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRelativeAccuracy",
+     "ann": "in",
+     "default": null,
+     "note": "Relative accuracy; values below 1e-8 are not recommended",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdVolume",
+     "ann": "out",
+     "default": null,
+     "note": "Enclosed volume",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepComputeArea",
+   "name": "SmApiBrepComputeArea",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep (read-only)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRelativeAccuracy",
+     "ann": "in",
+     "default": null,
+     "note": "Relative accuracy, same guidance as SmApiFaceComputeArea;",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdArea",
+     "ann": "out",
+     "default": null,
+     "note": "Total surface area of all faces",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepComputeMassProperties",
+   "name": "SmApiBrepComputeMassProperties",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Brep to query (closed manifold solid; read-only)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRelativeAccuracy",
+     "ann": "in",
+     "default": null,
+     "note": "Relative accuracy values below 1e-8 are not recommended",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double",
+     "name": "dDensity",
+     "ann": "in",
+     "default": null,
+     "note": "Uniform mass density (mass = density * volume); must be a",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Origin the moments/products are taken about (axes parallel",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double&",
+     "name": "rdArea",
+     "ann": "out",
+     "default": null,
+     "note": "Total surface area",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdVolume",
+     "ann": "out",
+     "default": null,
+     "note": "Enclosed volume",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMass",
+     "ann": "out",
+     "default": null,
+     "note": "Mass = dDensity * volume",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rCentroid",
+     "ann": "out",
+     "default": null,
+     "note": "Mass centroid (centre of gravity) in world coordinates;",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "rMomentsOfInertia",
+     "ann": "out",
+     "default": null,
+     "note": "Mass moments of inertia (Ixx, Iyy, Izz) about axes through",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "rProductsOfInertia",
+     "ann": "out",
+     "default": null,
+     "note": "Mass products of inertia about crOrigin as raw positive",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepBoundingBox",
+   "name": "SmApiBrepBoundingBox",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to brep",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bTight",
+     "ann": "in",
+     "default": null,
+     "note": "FALSE = fast loose union of vertex/edge/face boxes;",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rMin",
+     "ann": "out",
+     "default": null,
+     "note": "Min corner of axis-aligned bounding box",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rMax",
+     "ann": "out",
+     "default": null,
+     "note": "Max corner of axis-aligned bounding box",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiBrepCopy",
+   "name": "SmApiBrepCopy",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmBrep*",
+     "name": "pBrep",
+     "ann": "in",
+     "default": null,
+     "note": "Source Brep (not modified)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Newly allocated deep copy in the SM_API context",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFaceBoundingBox",
+   "name": "SmApiFaceBoundingBox",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bTight",
+     "ann": "in",
+     "default": null,
+     "note": "FALSE = fast loose box; TRUE = tight (expensive)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rMin",
+     "ann": "out",
+     "default": null,
+     "note": "Min corner of axis-aligned bounding box",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rMax",
+     "ann": "out",
+     "default": null,
+     "note": "Max corner of axis-aligned bounding box",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFaceComputeArea",
+   "name": "SmApiFaceComputeArea",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRelativeAccuracy",
+     "ann": "in",
+     "default": null,
+     "note": "Relative accuracy values below 1e-8 are not recommended",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdArea",
+     "ann": "out",
+     "default": null,
+     "note": "Surface area of the face within its trim boundary",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFaceInternalPoint",
+   "name": "SmApiFaceInternalPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Point on the owning surface, strictly inside the face trims",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFaceClassifyUV",
+   "name": "SmApiFaceClassifyUV",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint2d&",
+     "name": "crUV",
+     "ann": "in",
+     "default": null,
+     "note": "UV parameter on the parent surface to classify",
+     "cross": "in",
+     "kind": "v2"
+    },
+    {
+     "type": "int&",
+     "name": "rClassification",
+     "ann": "out",
+     "default": null,
+     "note": "SmPointClassificationType: SM_PC_FACE (inside),",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFaceClosestPoint",
+   "name": "SmApiFaceClosestPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Query point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rClosestPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Closest point on the trimmed face",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "Distance from crPoint to rClosestPoint",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiFaceComputeCentroid",
+   "name": "SmApiFaceComputeCentroid",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmFace*",
+     "name": "pFace",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to face",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dRelativeAccuracy",
+     "ann": "in",
+     "default": null,
+     "note": "Relative accuracy values below 1e-8 are not recommended",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdArea",
+     "ann": "out",
+     "default": null,
+     "note": "Surface area of the face within its trim boundary",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rCentroid",
+     "ann": "out",
+     "default": null,
+     "note": "Area centroid of the trimmed face",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEdgeBoundingBox",
+   "name": "SmApiEdgeBoundingBox",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmEdge*",
+     "name": "pEdge",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to edge",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBoolean",
+     "name": "bTight",
+     "ann": "in",
+     "default": null,
+     "note": "FALSE = fast loose box; TRUE = tight (expensive)",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rMin",
+     "ann": "out",
+     "default": null,
+     "note": "Min corner of axis-aligned bounding box",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rMax",
+     "ann": "out",
+     "default": null,
+     "note": "Max corner of axis-aligned bounding box",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEdgeComputeLength",
+   "name": "SmApiEdgeComputeLength",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmEdge*",
+     "name": "pEdge",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to edge",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dDesiredAccuracy",
+     "ann": "in",
+     "default": null,
+     "note": "Absolute accuracy of the arc-length integration",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdLength",
+     "ann": "out",
+     "default": null,
+     "note": "3D arc length of the edge over its parametric interval",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEdgeClosestPoint",
+   "name": "SmApiEdgeClosestPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmEdge*",
+     "name": "pEdge",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to edge",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crPoint",
+     "ann": "in",
+     "default": null,
+     "note": "Query point",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rClosestPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Closest point on the edge's trimmed curve interval",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "double&",
+     "name": "rdParameter",
+     "ann": "out",
+     "default": null,
+     "note": "Curve parameter of the closest point",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdDistance",
+     "ann": "out",
+     "default": null,
+     "note": "Distance from crPoint to rClosestPoint",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEdgeParameterRange",
+   "name": "SmApiEdgeParameterRange",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmEdge*",
+     "name": "pEdge",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to edge",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double&",
+     "name": "rdMin",
+     "ann": "out",
+     "default": null,
+     "note": "Low end of the edge's parametric interval on its curve",
+     "cross": "out",
+     "kind": "num"
+    },
+    {
+     "type": "double&",
+     "name": "rdMax",
+     "ann": "out",
+     "default": null,
+     "note": "High end of the edge's parametric interval on its curve",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEdgeClassifyParameter",
+   "name": "SmApiEdgeClassifyParameter",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmEdge*",
+     "name": "pEdge",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to edge",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dParameter",
+     "ann": "in",
+     "default": null,
+     "note": "Curve parameter to classify",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "int&",
+     "name": "rClassification",
+     "ann": "out",
+     "default": null,
+     "note": "SmPointClassificationType: SM_PC_EDGE (interior),",
+     "cross": "out",
+     "kind": "num"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEdgeTangent",
+   "name": "SmApiEdgeTangent",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmEdge*",
+     "name": "pEdge",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to edge",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dParameter",
+     "ann": "in",
+     "default": null,
+     "note": "Curve parameter, within the edge's interval",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "rTangent",
+     "ann": "out",
+     "default": null,
+     "note": "Unit tangent vector at dParameter",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiVertexGetPoint",
+   "name": "SmApiVertexGetPoint",
+   "header": "SmApiQueries.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmVertex*",
+     "name": "pVertex",
+     "ann": "in",
+     "default": null,
+     "note": "Pointer to vertex",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmPoint3d&",
+     "name": "rPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Vertex 3D position",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSurface",
+   "name": "SmApiCreateSurface",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmPoint3d>&",
+     "name": "rControlPoints",
+     "ann": "in",
+     "default": null,
+     "note": "List of control points",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "ULONG",
+     "name": "lNumRows",
+     "ann": "in",
+     "default": null,
+     "note": "Number of rows",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "lNumColumns",
+     "ann": "in",
+     "default": null,
+     "note": "Number of columns",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSurfaceFromCornerPoints",
+   "name": "SmApiCreateSurfaceFromCornerPoints",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCornerUminVmin",
+     "ann": "in",
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCornerUmaxVmin",
+     "ann": "in",
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCornerUminVmax",
+     "ann": "in",
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crCornerUmaxVmax",
+     "ann": "in",
+     "default": null,
+     "note": "",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSurfaceFromOrderedPoints",
+   "name": "SmApiCreateSurfaceFromOrderedPoints",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": "in",
+     "default": null,
+     "note": "points ordered: P[row][col] = p[row*lNumCols + col]",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "ULONG",
+     "name": "lNumRows",
+     "ann": "in",
+     "default": null,
+     "note": "Number of rows",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "ULONG",
+     "name": "lNumColumns",
+     "ann": "in",
+     "default": null,
+     "note": "Number of columns",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSurfaceFromRandomPoints",
+   "name": "SmApiCreateSurfaceFromRandomPoints",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmPoint3d>&",
+     "name": "rPoints",
+     "ann": "in",
+     "default": null,
+     "note": "Input points",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateExtrude",
+   "name": "SmApiCreateExtrude",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Generation curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rSweepVector",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep vector",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSweep",
+   "name": "SmApiCreateSweep",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Generation curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "pPath",
+     "ann": "in",
+     "default": null,
+     "note": "Sweep vector",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateRuledSurface",
+   "name": "SmApiCreateRuledSurface",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBSplineCurve*",
+     "name": "rCurve1",
+     "ann": "in",
+     "default": null,
+     "note": "Generation curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "rCurve2",
+     "ann": "in",
+     "default": null,
+     "note": "Generation curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSurfaceRevolution",
+   "name": "SmApiCreateSurfaceRevolution",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmBSplineCurve*",
+     "name": "rCurve",
+     "ann": "in",
+     "default": null,
+     "note": "Generation curve",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "rOrigin",
+     "ann": "in",
+     "default": null,
+     "note": "Origin of axis of revolution",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "rAxisDir",
+     "ann": "in",
+     "default": null,
+     "note": "Axis of revolution",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "double",
+     "name": "dAngleDeg",
+     "ann": "in",
+     "default": null,
+     "note": "Angle of revolution",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateSkin",
+   "name": "SmApiCreateSkin",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmBSplineCurve*>&",
+     "name": "rProfiles",
+     "ann": "in",
+     "default": null,
+     "note": "Profile curves",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreateOffsetSurface",
+   "name": "SmApiCreateOffsetSurface",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmSurface*",
+     "name": "pSrfToOffset",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to offset",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "double",
+     "name": "dOffsetDistance",
+     "ann": "in",
+     "default": null,
+     "note": "Distance of offset ( positive: normal dir of input surface",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmSurface*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBSplineSurface",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEvaluateSurfacePoint",
+   "name": "SmApiEvaluateSurfacePoint",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to evaluate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector2d&",
+     "name": "crUV",
+     "ann": "in",
+     "default": null,
+     "note": "Parameter (uv) at which to evaluate",
+     "cross": "in",
+     "kind": "v2"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "crPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting Point at this parameter",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEvaluateSurfaceNormal",
+   "name": "SmApiEvaluateSurfaceNormal",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to evaluate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector2d&",
+     "name": "crUV",
+     "ann": "in",
+     "default": null,
+     "note": "Parameter (uv) at which to evaluate",
+     "cross": "in",
+     "kind": "v2"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "crNormal",
+     "ann": "out",
+     "default": null,
+     "note": "Surface Normal at parameter",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiEvaluateSurfaceDerivatives",
+   "name": "SmApiEvaluateSurfaceDerivatives",
+   "header": "SmApiSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to evaluate",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector2d&",
+     "name": "crUV",
+     "ann": "in",
+     "default": null,
+     "note": "Parameter (uv) at which to evaluate",
+     "cross": "in",
+     "kind": "v2"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "crPoint",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting Point at this parameter",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "rDU",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting U derivative",
+     "cross": "out",
+     "kind": "v3"
+    },
+    {
+     "type": "SmVector3d&",
+     "name": "rDV",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting V derivative",
+     "cross": "out",
+     "kind": "v3"
+    }
+   ]
+  },
+  {
+   "js": "SmApiTrimSurfaceWith3dCurves",
+   "name": "SmApiTrimSurfaceWith3dCurves",
+   "header": "SmApiTrimmedSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmSurface*",
+     "name": "pSurface",
+     "ann": "in",
+     "default": null,
+     "note": "Surface to trim (consumed)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmTArray<ULONG>&",
+     "name": "crCurveLoops",
+     "ann": "in",
+     "default": null,
+     "note": "Number of curves in each loop",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "cr3DCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Trimming curves in head to tail order",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiTrimProjectParallel",
+   "name": "SmApiTrimProjectParallel",
+   "header": "SmApiTrimmedSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "SmObject*",
+     "name": "pObject",
+     "ann": "in",
+     "default": null,
+     "note": "Brep or standalone Surface to trim (consumed on success)",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "SmBSplineCurve*",
+     "name": "crCurveToProject",
+     "ann": "in",
+     "default": null,
+     "note": "Curve to project to the faces",
+     "cross": "in",
+     "kind": "obj"
+    },
+    {
+     "type": "const SmVector3d&",
+     "name": "crProjectionDirection",
+     "ann": "in",
+     "default": null,
+     "note": "Defines direction of projection",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "const SmPoint3d&",
+     "name": "crReferencePoint",
+     "ann": "in",
+     "default": null,
+     "note": "Used only if trimType is SM_TT_KEEP_POINT or SM_TT_DELETE_POINT.",
+     "cross": "in",
+     "kind": "v3"
+    },
+    {
+     "type": "SmTrimType",
+     "name": "eTrimType",
+     "ann": "in",
+     "default": null,
+     "note": "SM_TT_KEEP_POINT: Uses crReferencePoint to determine side to keep",
+     "cross": "in",
+     "kind": "num"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep; NULL on failure. On failure a Brep pObject",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  },
+  {
+   "js": "SmApiCreatePlanarFaces",
+   "name": "SmApiCreatePlanarFaces",
+   "header": "SmApiTrimmedSurfaces.h",
+   "doc": "",
+   "params": [
+    {
+     "type": "const SmTArray<SmCurve*>&",
+     "name": "crPlanarCurves",
+     "ann": "in",
+     "default": null,
+     "note": "Planar bounding curves",
+     "cross": "in",
+     "kind": "arr"
+    },
+    {
+     "type": "SmBrep*&",
+     "name": "rpResult",
+     "ann": "out",
+     "default": null,
+     "note": "Resulting SmBrep",
+     "cross": "out",
+     "kind": "obj"
+    }
+   ]
+  }
+ ],
+ "skipped": [
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  },
+  {
+   "name": "SmApiDraw",
+   "header": "SmApiGeneral.h",
+   "why": "debug drawing through the graphics callbacks; no display in WebAssembly"
+  }
+ ],
+ "status": {
+  "SM_SUCCESS": 1000,
+  "SM_ERR": 1001,
+  "SM_ERR_OUT_OF_MEMORY": 1002,
+  "SM_ERR_UNKNOWN": 1003,
+  "SM_ERR_FATAL": 1004,
+  "SM_ERR_ASSERT_FAILURE": 1005,
+  "SM_ERR_NULL_POINTER": 1006,
+  "SM_ERR_INVALID_INPUT": 1007,
+  "SM_ERR_NON_NULL_OUTPUT_POINTER": 1008,
+  "SM_ERR_ASSERTVALID_FAILURE": 1010,
+  "SM_ERR_OUTSIDE_OF_DOMAIN": 1020,
+  "SM_ERR_NOT_WITHIN_TOLERANCE": 1021,
+  "SM_ERR_NOT_CONVERGING": 1022,
+  "SM_ERR_WARNING": 1023,
+  "SM_ERR_MESSAGE": 1024,
+  "SM_ERR_AXIS_INSIDE_FACE": 1025,
+  "SM_ERR_LICENSE_EXPIRED": 1026,
+  "SM_ERR_BAD_INTERSECTIONS": 1027,
+  "SM_ERR_BAD_COINCIDENT_VERTICES": 1028,
+  "SM_ERR_BAD_SURFACE_POINT": 1030,
+  "SM_ERR_BAD_TANGENT_DROP": 1032,
+  "SM_ERR_DEGENERATE_SURFACE": 1034,
+  "SM_ERR_BAD_FIND_DEGEN_PARAM": 1036,
+  "SM_ERR_METHOD_FAILURE_QUITING": 1038,
+  "SM_ERR_NOTYET_HEAL_FACE": 1040,
+  "SM_ERR_TESS_FAIL_FACE": 1041
+ }
+}

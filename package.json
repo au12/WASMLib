@@ -1,0 +1,20 @@
+{
+  "name": "wasmlib",
+  "version": "0.1.0",
+  "description": "NVIDIA's SMLib B-rep solid modelling kernel (usd-brep) compiled to WebAssembly: all of SM_API, plus a batched object layer",
+  "type": "module",
+  "main": "./dist/wasmlib.mjs",
+  "types": "./js/wasmlib.d.ts",
+  "exports": {
+    ".": { "types": "./js/wasmlib.d.ts", "default": "./dist/wasmlib.mjs" },
+    "./wasmlib.wasm": "./dist/wasmlib.wasm"
+  },
+  "files": ["dist/", "js/", "LICENSE", "LICENSE.usd-brep", "NOTICE"],
+  "scripts": {
+    "build": "tools/build.sh",
+    "test": "node test/smoke.mjs && node test/api.test.mjs"
+  },
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "https://github.com/au12/WASMLib.git" },
+  "keywords": ["cad", "brep", "nurbs", "smlib", "webassembly", "wasm", "solid-modeling"]
+}
