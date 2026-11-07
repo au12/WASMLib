@@ -4,6 +4,7 @@
 #include "wl.h"
 #include "geom.h"
 
+#include <SmBSplineCurve.h>
 #include <SmCircle.h>
 #include <SmCone.h>
 #include <SmContext.h>
@@ -22,6 +23,7 @@
 #include <SmRegion.h>
 #include <SmShell.h>
 #include <SmSphere.h>
+#include <SmSurfOfExtrusion.h>
 #include <SmSurface.h>
 #include <SmTorus.h>
 #include <SmVertex.h>
@@ -248,6 +250,13 @@ double run_length(const EdgeRun& r) {
     }
     return L;
 }
+/** a curve that is (within a hair of) a circular arc */
+bool circular(const SmCurve* c, SmAxis2Placement& pl, double& rad, double& a0, double& a1) {
+    const SmExtent1d iv = c->GetNaturalInterval();
+    const SmVector3d p = at(c, iv.GetMin()), q = at(c, 0.5 * (iv.GetMin() + iv.GetMax()));
+    const double size = std::max(1.0, len(SmVector3d(p.x - q.x, p.y - q.y, p.z - q.z)));
+    return c->IsArc(24, 1e-9 * size, pl, rad, a0, a1) && rad > 0 && std::isfinite(rad);
+}
 void canonical(const SmCurve* c, val& o) {
     if (c && c->GetType() == SmCircle_TYPE) {
         SmAxis2Placement pl;
@@ -267,6 +276,24 @@ void canonical(const SmCurve* c, val& o) {
             o.set("xAxis", v3(unit(pl.GetXAxis())));
             o.set("radius", r1);
             o.set("radius2", r2);
+        }
+    } else if (c && c->GetType() != SmLine_TYPE) {
+        // a B-spline that is exactly a circular arc (sweeps, offsets and booleans make these): say so
+        SmAxis2Placement pl;
+        double rad = 0, a0 = 0, a1 = 0;
+        SmPoint3d lp;
+        SmVector3d lv;
+        const SmExtent1d iv = c->GetNaturalInterval();
+        const SmVector3d e0 = at(c, iv.GetMin()), e1 = at(c, iv.GetMax());
+        const double size = std::max(1.0, len(SmVector3d(e1.x - e0.x, e1.y - e0.y, e1.z - e0.z)));
+        if (c->IsLine(12, 1e-9 * size, lp, lv)) {
+            o.set("kind", std::string("line"));
+        } else if (circular(c, pl, rad, a0, a1)) {
+            o.set("kind", std::string("circle"));
+            o.set("center", v3(pl.GetOrigin()));
+            o.set("axis", v3(unit(pl.GetZAxis())));
+            o.set("xAxis", v3(unit(pl.GetXAxis())));
+            o.set("radius", rad);
         }
     }
 }
@@ -329,6 +356,46 @@ val curveCopy(const val& h) {
     wl::check(c->Copy(*SmApiGetOrCreateContext(), copy), "SmCurve::Copy");
     return wl::handle(copy);
     WL_END("curveCopy")
+}
+/** a copy of a Brep with its surfaces recognized as planes, cylinders, cones, spheres and tori where they are such
+ *  (sweeps and lofts build B-spline or extrusion surfaces even for round arcs) */
+val withAnalytics(const val& h) {
+    WL_BEGIN
+    return wl::handle(new (*SmApiGetOrCreateContext()) SmBrep(*wl::ptr<SmBrep>(h), nullptr, nullptr, TRUE, TRUE));
+    WL_END("withAnalytics")
+}
+/** a free curve's mirror image in the plane through `origin` square to `normal`: a new (B-spline) curve, the caller's */
+val curveMirror(const val& h, const val& normal, const val& origin) {
+    WL_BEGIN
+    const SmBSplineCurve* c = dynamic_cast<const SmBSplineCurve*>(wl::ptr<SmCurve>(h));
+    if (!c) throw std::runtime_error("curveMirror: the curve has no B-spline form");
+    const SmVector3d n = unit(wl::v3(normal)), o = wl::v3(origin);
+    const ULONG count = c->GetNumberControlPoints();
+    std::vector<double> cp(4 * count);
+    wl::check(c->GetControlPointsExpert(SM_CP_EUCLIDIAN_RATIONAL, 0, count - 1, 4, cp.data()), "SmBSplineCurve::GetControlPointsExpert");
+    SmTArray<SmPoint3d> pts;
+    SmTArray<double> ws, knots;
+    SmTArray<ULONG> mults;
+    for (ULONG i = 0; i < count; ++i) {
+        const SmVector3d p(cp[4 * i], cp[4 * i + 1], cp[4 * i + 2]);
+        const double k = 2 * dot(SmVector3d(p.x - o.x, p.y - o.y, p.z - o.z), n);
+        pts.Add(SmVector3d(p.x - n.x * k, p.y - n.y * k, p.z - n.z * k));
+        ws.Add(cp[4 * i + 3]);
+    }
+    wl::check(c->GetKnots(knots, &mults), "SmBSplineCurve::GetKnots");
+    SmBSplineCurve* out = nullptr;
+    wl::check(SmApiCreateCanonicalCurve(pts, knots, mults, c->IsRational() ? &ws : nullptr, c->GetDegree(), SM_CF_UNSPECIFIED, out), "SmApiCreateCanonicalCurve");
+    return wl::handle(out);
+    WL_END("curveMirror")
+}
+/** trim a free curve, in place, to [t0, t1] of its parameter */
+val curveTrim(const val& h, double t0, double t1) {
+    WL_BEGIN
+    SmCurve* c = wl::ptr<SmCurve>(h);
+    SmExtent1d iv(std::min(t0, t1), std::max(t0, t1));
+    wl::check(c->Trim(iv), "SmCurve::Trim");
+    return val::undefined();
+    WL_END("curveTrim")
 }
 /** one Brep holding copies of every face of these Breps, side by side (no intersecting, no stitching: sew it after) */
 val combineSheets(const val& breps) {
@@ -442,6 +509,32 @@ val faceInfo(const val& h) {
         case SmTorus_TYPE:
             if (((const SmTorus*)s)->GetCanonical(pl, a, b) == SM_SUCCESS) { frame(pl); o.set("radius", a); o.set("minorRadius", b); }
             break;
+        case SmSurfOfExtrusion_TYPE: {
+            // an extruded circular arc is a cylinder: find the arc among the face's edges, square to the extrusion
+            const SmVector3d v = unit(((const SmSurfOfExtrusion*)s)->GetExtrusionVector());
+            SmTArray<SmEdge*> es;
+            f->GetEdges(es);
+            for (ULONG i = 0; i < es.GetSize(); ++i) {
+                double r = 0, a0 = 0, a1 = 0;
+                SmAxis2Placement ap;
+                if (!es[i]->GetCurve() || !circular(es[i]->GetCurve(), ap, r, a0, a1)) continue;
+                const SmVector3d z = unit(ap.GetZAxis());
+                if (std::fabs(std::fabs(dot(z, v)) - 1) > 1e-9) continue;
+                // check: a point inside the face lies at that radius from the axis
+                SmVector3d q;
+                if (SmApiFaceInternalPoint(f, q) != SM_SUCCESS) break;
+                const SmVector3d o0 = ap.GetOrigin(), d(q.x - o0.x, q.y - o0.y, q.z - o0.z);
+                const double k = dot(d, v);
+                if (std::fabs(len(SmVector3d(d.x - v.x * k, d.y - v.y * k, d.z - v.z * k)) - r) > 1e-7 * std::max(1.0, r)) break;
+                o.set("kind", std::string("cylinder"));
+                o.set("origin", v3(o0));
+                o.set("axis", v3(v));
+                o.set("xAxis", v3(unit(ap.GetXAxis())));
+                o.set("radius", r);
+                break;
+            }
+            break;
+        }
         default: break;
     }
     return o;
@@ -682,6 +775,9 @@ EMSCRIPTEN_BINDINGS(wasmlib_objects) {
     function("keepFaces", &keepFaces);
     function("curveCopy", &curveCopy);
     function("combineSheets", &combineSheets);
+    function("curveTrim", &curveTrim);
+    function("curveMirror", &curveMirror);
+    function("withAnalytics", &withAnalytics);
     function("faceInfo", &faceInfo);
     function("faceNormal", &faceNormal);
     function("facePoint", &facePoint);

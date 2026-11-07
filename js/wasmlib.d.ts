@@ -67,6 +67,10 @@ export interface Objects {
   curveInfo(c: Ptr<"SmCurve">): EdgeInfo & { length: number };
   /** points (then unit tangents) at fractions of a free curve's length */
   curveSample(c: Ptr<"SmCurve">, fractions: number[], tangents: boolean): Float64Array;
+  /** a free curve's mirror image (a new B-spline curve, yours) in the plane through `origin` square to `normal` */
+  curveMirror(c: Ptr<"SmCurve">, normal: V3, origin: V3): Ptr<"SmCurve">;
+  /** trim a free curve, in place, to [t0, t1] of its parameter */
+  curveTrim(c: Ptr<"SmCurve">, t0: number, t1: number): void;
   /** a copy of a free curve (yours to destroy) */
   curveCopy(c: Ptr<"SmCurve">): Ptr<"SmCurve">;
   faceInfo(f: Ptr<"SmFace">): FaceInfo;
@@ -77,6 +81,8 @@ export interface Objects {
 
   /** a copy of a Brep, and where these of its faces / edges / vertices went in the copy */
   copyMapped(b: Ptr<"SmBrep">, topology: Ptr<string>[]): { brep: Ptr<"SmBrep">; map: Ptr<string>[] };
+  /** a copy of a Brep with its surfaces recognized as planes, cylinders, cones, spheres or tori where they are */
+  withAnalytics(b: Ptr<"SmBrep">): Ptr<"SmBrep">;
   /** a new Brep with copies of just these faces of a Brep: connected where they share edges (`merge`), or each alone */
   keepFaces(b: Ptr<"SmBrep">, faces: Ptr<"SmFace">[], merge: boolean): Ptr<"SmBrep">;
   /** one Brep with copies of every face of these Breps, side by side (no intersecting or stitching: sew it after) */
