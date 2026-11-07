@@ -179,3 +179,8 @@ inline val js(const SmTessellationReport& r) {
 }
 
 }  // namespace wl
+
+// one wrapper shape for every hand-written function: kernel exceptions and failed statuses become a JavaScript Error
+#define WL_BEGIN std::string err__; try {
+#define WL_END(name) } catch (const std::exception& e) { err__ = e.what(); } catch (...) { err__ = "unknown C++ exception"; } \
+    wl::raise(name, err__);

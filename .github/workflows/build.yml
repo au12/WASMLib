@@ -1,0 +1,30 @@
+name: build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Emscripten
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+          ~/emsdk/emsdk install 7.0.0 && ~/emsdk/emsdk activate 7.0.0
+      - name: Ninja
+        run: sudo apt-get install -y ninja-build
+      - name: Build the module and upstream's SM_API test suite
+        run: source ~/emsdk/emsdk_env.sh && tools/build.sh test
+      - name: WASMLib's own checks
+        run: node test/smoke.mjs && node test/api.test.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasmlib
+          path: dist/

@@ -8,7 +8,8 @@ export type V3 = [number, number, number];
  * for the type checker. Who frees an object follows SM_API's contract for the call that made it (see each
  * function's notes); free one with `destroy`.
  */
-export type Ptr<T extends string> = number & { readonly __sm?: T };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type Ptr<T extends string = string> = number;
 
 /** tessellation tolerances (SmTessellationParams); anything left out keeps SMLib's default */
 export interface TessellationParams {

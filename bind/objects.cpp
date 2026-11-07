@@ -2,10 +2,12 @@
 // face's or an edge's geometry, meshes as typed arrays, lifetimes, files — batched so that JavaScript asks once per
 // question rather than once per number.
 #include "wl.h"
+#include "geom.h"
 
 #include <SmCircle.h>
 #include <SmCone.h>
 #include <SmContext.h>
+#include <SmCopyBrepMap.h>
 #include <SmCurve.h>
 #include <SmCylinder.h>
 #include <SmEdge.h>
@@ -62,29 +64,15 @@ void wl::raise(const char* name, const std::string& why) {
     __builtin_unreachable();
 }
 
-// one wrapper shape for every hand-written function: kernel exceptions and failed statuses become a JavaScript Error
-#define WL_BEGIN std::string err__; try {
-#define WL_END(name) } catch (const std::exception& e) { err__ = e.what(); } catch (...) { err__ = "unknown C++ exception"; } \
-    wl::raise(name, err__);
+
 
 namespace {
+using namespace wlg;
 
 // ---------------------------------------------------------------- small helpers
 template <class T> val typed(const std::vector<T>& v) {
     // a copy owned by JavaScript (a view would go stale when the heap grows)
     return val(typed_memory_view(v.size(), v.data())).call<val>("slice");
-}
-inline double dot(const SmVector3d& a, const SmVector3d& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-inline double len(const SmVector3d& a) { return std::sqrt(dot(a, a)); }
-inline SmVector3d unit(const SmVector3d& a, const SmVector3d& fallback = SmVector3d(0, 0, 1)) {
-    const double l = len(a);
-    return (!std::isfinite(l) || l <= 1e-300) ? fallback : SmVector3d(a.x / l, a.y / l, a.z / l);
-}
-inline SmVector3d cross(const SmVector3d& a, const SmVector3d& b) {
-    return SmVector3d(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
-}
-inline SmVector3d perp(const SmVector3d& d) {
-    return unit(cross(d, std::fabs(d.z) < 0.9 ? SmVector3d(0, 0, 1) : SmVector3d(1, 0, 0)));
 }
 inline val v3(const SmVector3d& p) { return wl::js(p); }
 
@@ -118,59 +106,6 @@ const char* surface_kind(const SmSurface* s) {
     }
 }
 
-// ---------------------------------------------------------------- faces: which way is out
-/** +1 when the surface's normal points out of the material, -1 when it points in (SmPyLib's rule: the upward
- *  faceuse — the side the surface normal points to — belongs to the infinite region) */
-double face_sense(const SmFace* f) {
-    const SmBrep* b = f->GetBrep();
-    const SmFaceuse* up = f->GetUpwardFaceuse();
-    if (b && up && up->GetShell() && b->GetInfiniteRegion() != up->GetShell()->GetRegion()) return -1.0;
-    return 1.0;
-}
-/** the outward normal at the face point nearest p */
-SmVector3d face_normal_near(const SmFace* f, const SmVector3d& p, SmVector3d* where = nullptr) {
-    const SmSurface* s = f->GetSurface();
-    SmPoint3d q;
-    SmTArray<SmPoint2d> uvs;
-    double d = 0;
-    wl::check(SmApiSurfaceClosestPoint(s, p, q, uvs, d), "SmApiSurfaceClosestPoint");
-    SmVector3d n;
-    wl::check(SmApiEvaluateSurfaceNormal(s, uvs[0], n), "SmApiEvaluateSurfaceNormal");
-    if (where) *where = q;
-    n = unit(n);
-    const double k = face_sense(f);
-    return SmVector3d(n.x * k, n.y * k, n.z * k);
-}
-
-// ---------------------------------------------------------------- edges: arc length
-/** an edge as a stretch of its curve: parameters run t0 → t1 from the start vertex to the end vertex */
-struct EdgeRun {
-    const SmCurve* c = nullptr;
-    double t0 = 0, t1 = 1;
-    SmVector3d a, b;
-};
-SmVector3d at(const SmCurve* c, double t, SmVector3d* d1 = nullptr) {
-    SmVector3d pd[2];
-    wl::check(c->Evaluate(t, d1 ? 1 : 0, TRUE, pd), "SmCurve::Evaluate");
-    if (d1) *d1 = pd[1];
-    return pd[0];
-}
-EdgeRun edge_run(const SmEdge* e) {
-    EdgeRun r;
-    r.c = e->GetCurve();
-    const SmExtent1d iv = e->GetInterval();
-    SmVertex *vs = nullptr, *ve = nullptr;
-    e->GetVertices(vs, ve);
-    r.a = vs ? vs->GetPoint() : at(r.c, iv.GetMin());
-    r.b = ve ? ve->GetPoint() : at(r.c, iv.GetMax());
-    r.t0 = iv.GetMin();
-    r.t1 = iv.GetMax();
-    // the edge may run against its curve
-    const SmVector3d p0 = at(r.c, r.t0);
-    SmVector3d da(p0.x - r.a.x, p0.y - r.a.y, p0.z - r.a.z), db(p0.x - r.b.x, p0.y - r.b.y, p0.z - r.b.z);
-    if (vs != ve && len(db) < len(da)) std::swap(r.t0, r.t1);
-    return r;
-}
 /** parameters at fractions of the length (a table of 96 chords, inverted linearly — exact for lines) */
 std::vector<double> params_by_length(const EdgeRun& r, const std::vector<double>& fr) {
     const int N = r.c->GetType() == SmLine_TYPE ? 1 : 96;
@@ -291,6 +226,139 @@ val edgeVertices(const val& h) {
 val vertexPoint(const val& h) { WL_BEGIN return v3(wl::ptr<SmVertex>(h)->GetPoint()); WL_END("vertexPoint") }
 
 // ---- geometry
+/** a free curve as a run: its whole natural interval */
+EdgeRun curve_run(const SmCurve* c) {
+    EdgeRun r;
+    r.c = c;
+    const SmExtent1d iv = c->GetNaturalInterval();
+    r.t0 = iv.GetMin();
+    r.t1 = iv.GetMax();
+    r.a = at(c, r.t0);
+    r.b = at(c, r.t1);
+    return r;
+}
+double run_length(const EdgeRun& r) {
+    const int N = r.c->GetType() == SmLine_TYPE ? 1 : 256;
+    double L = 0;
+    SmVector3d prev = at(r.c, r.t0);
+    for (int i = 1; i <= N; ++i) {
+        const SmVector3d p = at(r.c, r.t0 + (r.t1 - r.t0) * i / N);
+        L += len(SmVector3d(p.x - prev.x, p.y - prev.y, p.z - prev.z));
+        prev = p;
+    }
+    return L;
+}
+void canonical(const SmCurve* c, val& o) {
+    if (c && c->GetType() == SmCircle_TYPE) {
+        SmAxis2Placement pl;
+        double rad = 0;
+        if (((const SmCircle*)c)->GetCanonical(pl, rad) == SM_SUCCESS) {
+            o.set("center", v3(pl.GetOrigin()));
+            o.set("axis", v3(unit(pl.GetZAxis())));
+            o.set("xAxis", v3(unit(pl.GetXAxis())));
+            o.set("radius", rad);
+        }
+    } else if (c && c->GetType() == SmEllipse_TYPE) {
+        SmAxis2Placement pl;
+        double r1 = 0, r2 = 0;
+        if (((const SmEllipse*)c)->GetCanonical(pl, r1, r2) == SM_SUCCESS) {
+            o.set("center", v3(pl.GetOrigin()));
+            o.set("axis", v3(unit(pl.GetZAxis())));
+            o.set("xAxis", v3(unit(pl.GetXAxis())));
+            o.set("radius", r1);
+            o.set("radius2", r2);
+        }
+    }
+}
+val sample_run(const EdgeRun& r, const val& fractions, bool tangents) {
+    std::vector<double> fr = vecFromJSArray<double>(fractions);
+    const std::vector<double> ts = params_by_length(r, fr);
+    const double dir = r.t1 >= r.t0 ? 1.0 : -1.0;
+    std::vector<double> out;
+    out.reserve(ts.size() * (tangents ? 6 : 3));
+    for (double t : ts) {
+        SmVector3d d;
+        const SmVector3d p = at(r.c, t, tangents ? &d : nullptr);
+        out.insert(out.end(), {p.x, p.y, p.z});
+        if (tangents) { d = unit(SmVector3d(d.x * dir, d.y * dir, d.z * dir)); out.insert(out.end(), {d.x, d.y, d.z}); }
+    }
+    return typed(out);
+}
+/** a free curve: kind, ends, length, and its circle when it is one */
+val curveInfo(const val& h) {
+    WL_BEGIN
+    const SmCurve* c = wl::ptr<SmCurve>(h);
+    const EdgeRun r = curve_run(c);
+    val o = val::object();
+    o.set("kind", std::string(curve_kind(c)));
+    o.set("start", v3(r.a));
+    o.set("end", v3(r.b));
+    o.set("t0", r.t0);
+    o.set("t1", r.t1);
+    o.set("closed", len(SmVector3d(r.a.x - r.b.x, r.a.y - r.b.y, r.a.z - r.b.z)) < 1e-9);
+    o.set("length", run_length(r));
+    canonical(c, o);
+    return o;
+    WL_END("curveInfo")
+}
+val curveSample(const val& h, const val& fractions, bool tangents) {
+    WL_BEGIN
+    return sample_run(curve_run(wl::ptr<SmCurve>(h)), fractions, tangents);
+    WL_END("curveSample")
+}
+/** a copy of a Brep, and where the given faces / edges / vertices of the original went in it */
+val copyMapped(const val& h, const val& topos) {
+    WL_BEGIN
+    const SmBrep* b = wl::ptr<SmBrep>(h);
+    SmCopyBrepMap rev;
+    SmBrep* c = new (*SmApiGetOrCreateContext()) SmBrep(*b, nullptr, &rev, TRUE, FALSE);
+    val o = val::object();
+    o.set("brep", wl::handle(c));
+    val m = val::array();
+    const unsigned n = wl::present(topos) ? topos["length"].as<unsigned>() : 0;
+    for (unsigned i = 0; i < n; ++i) m.set(i, wl::handle(rev.GetAt(wl::ptr<SmTopology>(topos[i]))));
+    o.set("map", m);
+    return o;
+    WL_END("copyMapped")
+}
+/** a copy of a free curve (the caller's to delete) */
+val curveCopy(const val& h) {
+    WL_BEGIN
+    const SmCurve* c = wl::ptr<SmCurve>(h);
+    SmCurve* copy = nullptr;
+    wl::check(c->Copy(*SmApiGetOrCreateContext(), copy), "SmCurve::Copy");
+    return wl::handle(copy);
+    WL_END("curveCopy")
+}
+/** one Brep holding copies of every face of these Breps, side by side (no intersecting, no stitching: sew it after) */
+val combineSheets(const val& breps) {
+    WL_BEGIN
+    SmBrep* dest = new (*SmApiGetOrCreateContext()) SmBrep();
+    const unsigned n = breps["length"].as<unsigned>();
+    for (unsigned i = 0; i < n; ++i) {
+        SmBrep* b = wl::ptr<SmBrep>(breps[i]);
+        SmTArray<SmFace*> fs;
+        b->GetFaces(fs);
+        const SmStatus s = b->CopyFaces(fs, dest, nullptr, FALSE);
+        if (s != SM_SUCCESS) { delete dest; wl::check(s, "SmBrep::CopyFaces"); }
+    }
+    return wl::handle(dest);
+    WL_END("combineSheets")
+}
+/** a new Brep holding copies of just these faces of a Brep, connected where they share edges (merge: TRUE) or each
+ *  on its own (FALSE) */
+val keepFaces(const val& h, const val& faces, bool merge) {
+    WL_BEGIN
+    SmBrep* b = wl::ptr<SmBrep>(h);
+    SmTArray<SmFace*> fs;
+    wl::fill(faces, fs);
+    SmBrep* dest = new (*SmApiGetOrCreateContext()) SmBrep();
+    const SmStatus s = b->CopyFaces(fs, dest, nullptr, merge ? TRUE : FALSE);
+    if (s != SM_SUCCESS) { delete dest; wl::check(s, "SmBrep::CopyFaces"); }
+    return wl::handle(dest);
+    WL_END("keepFaces")
+}
+
 /** everything about an edge's curve the modeller asks: kind, ends, and the circle / line it lies on */
 val edgeInfo(const val& h) {
     WL_BEGIN
@@ -305,45 +373,14 @@ val edgeInfo(const val& h) {
     o.set("t0", r.t0);
     o.set("t1", r.t1);
     o.set("closed", vs == ve);
-    if (r.c && r.c->GetType() == SmCircle_TYPE) {
-        SmAxis2Placement pl;
-        double rad = 0;
-        if (((const SmCircle*)r.c)->GetCanonical(pl, rad) == SM_SUCCESS) {
-            o.set("center", v3(pl.GetOrigin()));
-            o.set("axis", v3(unit(pl.GetZAxis())));
-            o.set("xAxis", v3(unit(pl.GetXAxis())));
-            o.set("radius", rad);
-        }
-    } else if (r.c && r.c->GetType() == SmEllipse_TYPE) {
-        SmAxis2Placement pl;
-        double r1 = 0, r2 = 0;
-        if (((const SmEllipse*)r.c)->GetCanonical(pl, r1, r2) == SM_SUCCESS) {
-            o.set("center", v3(pl.GetOrigin()));
-            o.set("axis", v3(unit(pl.GetZAxis())));
-            o.set("xAxis", v3(unit(pl.GetXAxis())));
-            o.set("radius", r1);
-            o.set("radius2", r2);
-        }
-    }
+    canonical(r.c, o);
     return o;
     WL_END("edgeInfo")
 }
 /** points (and unit tangents, if asked) at fractions of an edge's length: one Float64Array, xyz (+ txyz) each */
 val edgeSample(const val& h, const val& fractions, bool tangents) {
     WL_BEGIN
-    const EdgeRun r = edge_run(wl::ptr<SmEdge>(h));
-    std::vector<double> fr = vecFromJSArray<double>(fractions);
-    const std::vector<double> ts = params_by_length(r, fr);
-    const double dir = r.t1 >= r.t0 ? 1.0 : -1.0;
-    std::vector<double> out;
-    out.reserve(ts.size() * (tangents ? 6 : 3));
-    for (double t : ts) {
-        SmVector3d d;
-        const SmVector3d p = at(r.c, t, tangents ? &d : nullptr);
-        out.insert(out.end(), {p.x, p.y, p.z});
-        if (tangents) { d = unit(SmVector3d(d.x * dir, d.y * dir, d.z * dir)); out.insert(out.end(), {d.x, d.y, d.z}); }
-    }
-    return typed(out);
+    return sample_run(edge_run(wl::ptr<SmEdge>(h)), fractions, tangents);
     WL_END("edgeSample")
 }
 /** a free curve (a copy, the caller's to delete) along an edge, start to end */
@@ -639,6 +676,12 @@ EMSCRIPTEN_BINDINGS(wasmlib_objects) {
     function("edgeInfo", &edgeInfo);
     function("edgeSample", &edgeSample);
     function("edgeCurve", &edgeCurve);
+    function("curveInfo", &curveInfo);
+    function("curveSample", &curveSample);
+    function("copyMapped", &copyMapped);
+    function("keepFaces", &keepFaces);
+    function("curveCopy", &curveCopy);
+    function("combineSheets", &combineSheets);
     function("faceInfo", &faceInfo);
     function("faceNormal", &faceNormal);
     function("facePoint", &facePoint);
