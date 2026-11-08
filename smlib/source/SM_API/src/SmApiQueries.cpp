@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 #include "StdAfx.h"
 #include "SmApiQueries.h"
@@ -10,6 +12,8 @@
 #include <SmEdge.h>
 #include <SmEdgeuse.h>
 #include <SmFace.h>
+#include <SmFaceuse.h>
+#include <SmShell.h>
 #include <SmLoopuse.h>
 #include <SmRegion.h>
 #include <SmAttribute.h>
@@ -822,6 +826,117 @@ static SmApiStatus sm_BrepComputePropertiesAbout
                                             rdArea, rdVolume, rdMass, rMoments );
 }
 
+// WASMLib: the volume alone. SmBrep::ComputePreciseProperties's sum over the faces (and over wire edges and shell
+// vertices, which add nothing with the default behaviour), except that each face integrates only its area and volume
+// instead of every mass property: the step control is area-based either way (see SmFace::ComputePreciseProperties),
+// so the volume is the same, without carrying all 26 components (moments, products of inertia) at every step.
+static SmStatus wl_BrepComputeVolume
+(
+    const SmBrep*                  pBrep,
+    double                         dRelativeAccuracy,
+    const SmMassPropertyBehavior & crBehavior,
+    const SmPoint3d &              crOrigin,
+    double &                       rdVolume
+)
+{
+    rdVolume = 0.0;
+    SmExtent3d sBBox;
+    SER(pBrep->CalculateBoundingBox(sBBox));
+    SmVector3d sBoxSize = sBBox.GetSize();
+    double dEstimatedArea = smos_Max(sBoxSize.z,smos_Max(sBoxSize.x,sBoxSize.y));
+    dEstimatedArea = dEstimatedArea * dEstimatedArea / 100.0;
+    const ULONG lFlags = SM_PPF_AREA | SM_PPF_VOLUME;
+    SmTArray<SmVector3d> sDeltaMoments;
+    sDeltaMoments.SetSize(8);
+    SmTArray<SmFace*> sFaces;
+    pBrep->GetFaces(sFaces);
+    for (ULONG ii=0; ii<sFaces.GetSize(); ii++) {
+        SmFace *pF = sFaces[ii];
+        SmVector3d sMassVector(crBehavior.m_dDensity,crBehavior.m_dFaceThickness,0);
+        SmVector3dAttribute *pAttr = (SmVector3dAttribute*)pF->FindAttribute(SM_AI_MASS_PROPERTIES);
+        if (pAttr) sMassVector = pAttr->GetValue();
+        if (sMassVector.x < SM_EFF_ZERO) sMassVector.x = 1.0;
+        SmFaceuse *pFUS[2];
+        pFUS[0] = pF->GetUpwardFaceuse();
+        pFUS[1] = pFUS[0]->GetMate();
+        SmBoolean bVolumeSeparating = FALSE;
+        if (pFUS[0]->GetShell()->GetRegion() != pFUS[1]->GetShell()->GetRegion()) {
+            bVolumeSeparating = TRUE;
+        }
+        for (ULONG jj=0; jj<2; jj++) {
+            SmFaceuse *pFU = pFUS[jj];
+            SmBoolean bDoFUArea = FALSE;
+            SmBoolean bDoFUVolume = FALSE;
+            if (crBehavior.m_lFaceVolumeBehavior == 1) {
+                bVolumeSeparating = FALSE;
+            }
+            if ((!bVolumeSeparating) && sMassVector.y > SM_EFF_ZERO && jj==0) {
+                bDoFUArea = TRUE;
+            }
+            switch (crBehavior.m_lFaceAreaBehavior) {
+            case 0:
+                if ((!pFU->GetShell()->GetRegion()->IsVoid()) &&
+                    pFU->GetMate()->GetShell()->GetRegion()->IsVoid() ) {
+                    bDoFUArea = TRUE;
+                }
+                break;
+            case 1:
+                if (jj==0) bDoFUArea = TRUE;
+                break;
+            case 2:
+                bDoFUArea = TRUE;
+                break;
+            }
+            switch (crBehavior.m_lFaceVolumeBehavior) {
+            case 0:
+                if (!pFU->GetShell()->GetRegion()->IsVoid()) {
+                    bDoFUVolume = TRUE;
+                }
+                break;
+            }
+            if (! (bDoFUVolume || bDoFUArea) ) continue;
+            double dDeltaArea, dDeltaVolume;
+            if (bVolumeSeparating) {
+                SER(pFU->GetFace()->ComputePreciseProperties(pFU->GetOrientation(),
+                    dRelativeAccuracy,crOrigin,dEstimatedArea,0.0,
+                    dDeltaArea,dDeltaVolume,sDeltaMoments,lFlags));
+                rdVolume += dDeltaVolume;
+            }
+            else if (sMassVector.y > SM_EFF_ZERO) {
+                SER(pFU->GetFace()->ComputePreciseProperties(pFU->GetOrientation(),
+                    dRelativeAccuracy,crOrigin,dEstimatedArea,sMassVector.y,
+                    dDeltaArea,dDeltaVolume,sDeltaMoments,lFlags));
+                rdVolume += dDeltaVolume;
+                break;
+            }
+        }
+    }
+    SmTArray<SmEdge*> sEdges;
+    pBrep->GetEdges(sEdges);
+    for (ULONG jj=0; jj<sEdges.GetSize(); jj++) {
+        SmEdge *pE = sEdges[jj];
+        if (!pE->IsWire()) continue;
+        double dDeltaVolume, dDeltaArea, dEdgeLength;
+        SmVector3d sMassVector(crBehavior.m_dDensity,crBehavior.m_dEdgeCrossSectionRadius,0);
+        SmVector3dAttribute *pAttr = (SmVector3dAttribute*)pE->FindAttribute(SM_AI_MASS_PROPERTIES);
+        if (pAttr) sMassVector = pAttr->GetValue();
+        SER(pE->ComputePreciseProperties(dRelativeAccuracy,crOrigin,sMassVector.y,
+            dEdgeLength,dDeltaArea,dDeltaVolume,sDeltaMoments));
+        rdVolume += dDeltaVolume;
+    }
+    SmTArray<SmVertex*> sVertices;
+    pBrep->GetVertices(sVertices);
+    for (ULONG jj=0; jj<sVertices.GetSize(); jj++) {
+        SmVertex *pV = sVertices[jj];
+        if (!pV->IsShellVertex()) continue;
+        SmVector3d sMassVector(crBehavior.m_dDensity,crBehavior.m_dVertexSphereRadius,0);
+        SmVector3dAttribute *pAttr = (SmVector3dAttribute*)pV->FindAttribute(SM_AI_MASS_PROPERTIES);
+        if (pAttr) sMassVector = pAttr->GetValue();
+        rdVolume += 4.0*SM_PI*smos_Pow(sMassVector.y,3) / 3.0;
+    }
+    return SM_SUCCESS;
+}
+
 /*******************************************************************//**
 PURPOSE --- Compute the enclosed volume of a Brep using analytic
     integration over trimmed NURBS boundaries.
@@ -849,11 +964,7 @@ SmApiStatus SmApiBrepComputeVolume
     SER( pBrep->CalculateBoundingBox(sBBox) );
 
     SmMassPropertyBehavior sBehavior;
-    double dArea = 0.0, dMass = 0.0;
-    SmTArray<SmVector3d> sMoments;
-    SER( sm_BrepComputePropertiesAbout( pBrep, dRelativeAccuracy, sBehavior,
-                                        sBBox.GetMid(),
-                                        dArea, rdVolume, dMass, sMoments ) );
+    SER( wl_BrepComputeVolume( pBrep, dRelativeAccuracy, sBehavior, sBBox.GetMid(), rdVolume ) );
 
     return SM_SUCCESS;
 

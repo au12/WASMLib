@@ -4,14 +4,15 @@
 
 [SMLib](https://github.com/NVIDIA-Omniverse/usd-brep) is the NURBS / analytic boundary-representation kernel NVIDIA
 open-sourced (Apache-2.0) in usd-brep: booleans, fillets and chamfers, shelling and offsets, sweeps, skins,
-intersections, healing, tessellation. WASMLib builds its `SMLib` and `SM_API` sources from the `upstream` submodule
-(usd-brep 1.0.1) for the browser, workers and Node, and adds what a JavaScript caller needs:
+intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` source (from usd-brep 1.0.1, in
+[`smlib/`](smlib/README.md)), builds it for the browser, workers and Node, and adds what a JavaScript caller needs:
 
-- **Five speed patches** ([`patches/`](patches/README.md)), applied at build time to copies so the submodule stays
-  untouched: surface derivatives summed the textbook way, booleans that skip face pairs (and coplanar edges) that
-  can't meet, volumes that integrate the volume rather than every mass property, and point tests on flat faces that
-  skip loops the point is nowhere near. The same answers (volumes within the accuracy asked for); in DadCAD engraved
-  text builds 2.1× faster, a knurled knob 1.7–1.9×, a plate of 48 holes 1.6×, a filleted box 1.4×.
+- **A faster SMLib.** WASMLib's changes to SMLib are commits in this repo, each listed in
+  [`smlib/README.md`](smlib/README.md): surface derivatives summed the textbook way, booleans that skip face pairs
+  (and coplanar edges) that can't meet, volumes that integrate the volume rather than every mass property, and point
+  tests on flat faces that skip loops the point is nowhere near. The same answers (volumes within the accuracy asked
+  for); in DadCAD engraved text builds 2.1× faster, a knurled knob 1.7–1.9×, a plate of 48 holes 1.6×, a filleted
+  box 1.4×.
 
 - **All of SM_API, one to one** — 176 functions, generated from upstream's headers (`tools/gen_smapi.py`), with
   TypeScript declarations carrying upstream's parameter notes.
@@ -34,7 +35,7 @@ intersections, healing, tessellation. WASMLib builds its `SMLib` and `SM_API` so
 |---|---|
 | WebAssembly | 7.0 MB (2.4 MB gzip, 2.0 MB brotli) |
 | Start-up | ~40 ms to instantiate in Node 22 |
-| Upstream's SM_API test suite | **127 / 127 pass** with the patches, as without — in WebAssembly (57 s; 78 s without them) and natively (53 s, g++ -O2; 73 s without) |
+| Upstream's SM_API test suite | **127 / 127 pass** with WASMLib's changes, as without — in WebAssembly (57 s; 78 s without them) and natively (53 s, g++ -O2; 73 s without) |
 | Build | Emscripten 7.0: `-O3 -flto -msimd128 -fwasm-exceptions`, 16 MB stack, growable heap to 4 GB |
 | Licence | Apache-2.0 (WASMLib and SMLib alike) |
 
@@ -70,7 +71,7 @@ W.destroy(part); W.destroy(brep);
 ## Build
 
 ```bash
-git clone --recursive https://github.com/au12/WASMLib && cd WASMLib
+git clone https://github.com/au12/WASMLib && cd WASMLib
 source /path/to/emsdk/emsdk_env.sh       # Emscripten 7.0
 tools/build.sh                           # → dist/wasmlib.mjs, dist/wasmlib.wasm
 tools/build.sh test                      # also upstream's SM_API test suite, run in Node
@@ -86,7 +87,7 @@ WASMLib was built to compare SMLib with OpenCascade inside [DadCAD](https://gith
 engine runs on a kernel interface with interchangeable backends. The full head-to-head — the same parts built by the
 same engine on OpenCascade 7 (opencascade.js), OpenCascade 8 (occt-wasm), WASMLib and smlibwasm — is in DadCAD's
 [`docs/kernel.md`](https://github.com/au12/DadCAD/blob/main/docs/kernel.md), with what the screw sweep and the
-patches changed. In short (November 2026, Node 22, median of 3):
+changes to SMLib made. In short (November 2026, Node 22, median of 3):
 
 | | OpenCascade 7 (opencascade.js) | WASMLib | smlibwasm |
 |---|---:|---:|---:|
@@ -116,5 +117,6 @@ what SMLib does have; see its `src/kernel/geom/wasmlib`.
 
 ## Licence
 
-WASMLib is Apache-2.0 (`LICENSE`). SMLib and SM_API are © NVIDIA Corporation & Affiliates, Apache-2.0
-(`LICENSE.usd-brep`); see `NOTICE`. None of usd-brep's third-party components (OpenUSD, oneTBB, …) are compiled in.
+WASMLib is Apache-2.0 (`LICENSE`). SMLib and SM_API (`smlib/`) are © NVIDIA Corporation & Affiliates, Apache-2.0
+(`LICENSE.usd-brep`, also `smlib/LICENSE`), with WASMLib's changes marked in each file it changed; see `NOTICE`. None
+of usd-brep's third-party components (OpenUSD, oneTBB, …) are compiled in.

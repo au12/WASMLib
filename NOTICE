@@ -1,12 +1,16 @@
 WASMLib
 Copyright (c) 2026 Adam Underkofler and WASMLib contributors
 
-This product includes SMLib and SM_API from NVIDIA's usd-brep
-(https://github.com/NVIDIA-Omniverse/usd-brep), compiled to WebAssembly unchanged:
+This product includes SMLib and SM_API from NVIDIA's usd-brep 1.0.1
+(https://github.com/NVIDIA-Omniverse/usd-brep), in smlib/:
   Copyright (c) 2020-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
   Licensed under the Apache License, Version 2.0 (see LICENSE.usd-brep).
 
-Only SMLib (source/SMLib) and SM_API (source/SM_API) are built; none of usd-brep's
-third-party components (OpenUSD, oneTBB, MaterialX, ...) are compiled in.
+WASMLib has modified some of those files for speed. Each modified file says so under its
+licence header, each change is marked "WASMLib:" in the code, and smlib/README.md lists
+them; `git diff ae7cce2 -- smlib/` shows every change since the unmodified copy.
+
+Only SMLib (smlib/source/SMLib) and SM_API (smlib/source/SM_API) are built; none of
+usd-brep's third-party components (OpenUSD, oneTBB, MaterialX, ...) are compiled in.
 
 js/smapi.gen.d.ts carries SM_API's parameter notes, taken from upstream's headers.

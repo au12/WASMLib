@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmLoop.cpp
@@ -550,6 +552,30 @@ SmPointObjectContainmentType SmLoop::ContainsUVPoint // rtn: oneof SM_POC_INSIDE
   SmZoneTol3d sZoneTol3d = SmTol::GetZoneTol3d( pSurface ); 
   SmTol2d sTolUV = SmTol::MapTo2d( sZoneTol3d, crUVPoint, *pSurface );
   double dTolUV = sTolUV.val;
+
+  // WASMLib: on a flat face, a point outside the box round this loop's UV trim curves (by more than the UV tolerance)
+  // is outside the loop — the winding count below would come to 0 and it's on no edge — so the march round every
+  // edgeuse is skipped. A face with many holes (letters or holes cut into a plate) otherwise marches round all of them
+  // for each point classified. (Flat faces only: no seam or pole for a loop to wrap round in UV.)
+  if (dynamic_cast<SmPlane*>(pSurface) != NULL)
+    {
+      SmBoolean bHaveBox = TRUE;
+      double dMinU = SM_BIG_DOUBLE, dMinV = SM_BIG_DOUBLE, dMaxU = -SM_BIG_DOUBLE, dMaxV = -SM_BIG_DOUBLE;
+      for (ULONG ii = 0; ii < lNumEUs && bHaveBox; ii++)
+        {
+          SmBSplineCurve * pUVCrv = apEUs[ii]->GetUVTrimCurve();
+          SmExtent3d sCrvBox;
+          if (pUVCrv == NULL || pUVCrv->CalculateBoundingBox(pUVCrv->GetNaturalInterval(), &sCrvBox) != SM_SUCCESS || sCrvBox.HasNegativeVolume())
+            { bHaveBox = FALSE; break; }
+          dMinU = smos_Min(dMinU, sCrvBox.GetMin(0)); dMaxU = smos_Max(dMaxU, sCrvBox.GetMax(0));
+          dMinV = smos_Min(dMinV, sCrvBox.GetMin(1)); dMaxV = smos_Max(dMaxV, sCrvBox.GetMax(1));
+        }
+      if (   bHaveBox
+          && (   crUVPoint.x < dMinU - dTolUV || crUVPoint.x > dMaxU + dTolUV
+              || crUVPoint.y < dMinV - dTolUV || crUVPoint.y > dMaxV + dTolUV))
+        { return SM_POC_OUTSIDE; }
+    }
+
   //SmPoint3d sSrfPt;
   //SmVector3d sSu, sSv;
   //pSurface->Evaluate1stDerivatives( crUVPoint, FALSE, FALSE, sSrfPt, sSu, sSv );

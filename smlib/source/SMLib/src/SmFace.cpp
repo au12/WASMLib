@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmFace.cpp
@@ -11529,6 +11531,23 @@ SmStatus SmFace::FaceIntersect
       SmObjsDelete<SmCurve*> sClean(&s3DCurves) ;
       SmTArray<SmEdge *>     sEdges;
       this->GetEdges(sEdges) ;
+
+      // WASMLib: an edge whose box is apart from the other face's box can't bound where the two faces overlap
+      // (classified against that face it is all outside), so it isn't offered; a big face lying in one plane with
+      // many small ones (a knurl's end) otherwise has every one of its edges classified against each of them
+      SmExtent3d sBoxThis, sBoxOther;
+      const SmBoolean bBoxes = this->CalculateBoundingBox(sBoxThis) == SM_SUCCESS && !sBoxThis.HasNegativeVolume()
+                            && pOtherFace->CalculateBoundingBox(sBoxOther) == SM_SUCCESS && !sBoxOther.HasNegativeVolume();
+      const double dEdgeMargin = 10.0 * dApproxTol3d + sZoneTol3d;
+      auto bEdgeApart = [&](const SmEdge* pE, const SmExtent3d& crFaceBox) -> SmBoolean
+        {
+          if (!bBoxes) { return FALSE; }
+          SmExtent3d sEBox;
+          if (pE->GetCurve()->CalculateBoundingBox(pE->GetInterval(), &sEBox) != SM_SUCCESS || sEBox.HasNegativeVolume())
+            { return FALSE; }
+          sEBox.ExpandAbsolute(pE->GetTolerance());
+          return sEBox.AreDisjoint(crFaceBox, dEdgeMargin);
+        };
   
       // for every ThisFace->boundary edge - Add Edge->Crv Copy to output s3DCurves array
       for(ii=0;ii<sEdges.GetSize();ii++)
@@ -11538,6 +11557,9 @@ SmStatus SmFace::FaceIntersect
   
           // no work - degen curve
           if(pEdgeCrv->IsDegenerate())
+            { continue; }
+
+          if(bEdgeApart(pEdge, sBoxOther))
             { continue; }
   
           // Copy Edge->Crv
@@ -11573,6 +11595,9 @@ SmStatus SmFace::FaceIntersect
   
               // no work - degen Edge->Crv
               if(pEdgeCrv->IsDegenerate())
+                { continue; }
+
+              if(bEdgeApart(pEdge, sBoxThis))
                 { continue; }
   
               // Copy Edge->Crv
