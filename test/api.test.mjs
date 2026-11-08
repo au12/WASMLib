@@ -58,6 +58,39 @@ check("circle info", ci.kind === "circle" && near(ci.radius, 2) && near(ci.lengt
 const s = W.curveSample(c, [0.25], false);
 check("circle sampled by length", near(Math.hypot(s[0], s[1]), 2) && near(Math.atan2(s[1], s[0]), Math.PI / 2, 1e-3));
 
+// building: a screw sweep — a disc 2 off the axis, turned twice round it while rising 5: a closed solid whose volume
+// is the disc's area × 5, given back exactly, and the integrated volume and the mesh agree with it
+const meshVol = (b) => {
+  const mm = W.mesh(b, { chordHeightTol: 0.002, curveAngleTolDeg: 5, surfaceAngleTolDeg: 5 });
+  let v = 0;
+  const X = mm.vertices, I = mm.triangles;
+  for (let i = 0; i < I.length; i += 3) {
+    const p = 3 * I[i], q = 3 * I[i + 1], r = 3 * I[i + 2];
+    v += X[p] * (X[q + 1] * X[r + 2] - X[q + 2] * X[r + 1]) - X[p + 1] * (X[q] * X[r + 2] - X[q + 2] * X[r]) + X[p + 2] * (X[q] * X[r + 1] - X[q + 1] * X[r]);
+  }
+  return v / 6;
+};
+const disc = W.SmApiCreateCircle_Circle([2, 0, 0], 1);
+const sw = W.screwSweep([disc], [0, 0, 0], [0, 0, 1], [0, 0, 5], 720, 1e-4);
+check("screw sweep: a closed solid", !!W.SmApiBrepIsManifoldSolid(sw.brep) && W.SmApiBrepMaterialCensus(sw.brep).rlSolidCount === 1 && sw.glued);
+check("screw sweep: its exact volume", near(sw.volume, Math.PI * 5, 1e-9), String(sw.volume));
+check("screw sweep: integrated volume agrees", near(W.SmApiBrepComputeVolume(sw.brep, 1e-4), Math.PI * 5, 1e-4));
+check("screw sweep: mesh volume agrees", near(meshVol(sw.brep), Math.PI * 5, 5e-3), String(meshVol(sw.brep)));
+const swBox = W.brepBox(sw.brep);
+check("screw sweep: it stays within the turning disc", near(swBox[1][0], 3, 1e-3) && near(swBox[0][0], -3, 1e-3) && near(swBox[0][2], 0) && near(swBox[1][2], 5), JSON.stringify(swBox));
+W.destroy(disc);
+
+// building: Breps side by side, and a tight box round a turned cylinder (its control net bulges up to two fifths of r)
+const moved = W.SmApiBrepCopy(box);
+W.SmApiTranslate(moved, [20, 0, 0]);
+const twins = W.mergeDisjoint([box, moved]);
+check("merge disjoint: two solids, both volumes", W.SmApiBrepMaterialCensus(twins).rlSolidCount === 2 && near(vol(twins), 12000));
+const tilted = W.SmApiCreateCylinder([0, 0, 0], 2, 10);
+W.SmApiRotate(tilted, [0, 0, 0], [1, 0, 0], 90);
+const tb = W.brepBox(tilted);
+check("brepBox: tight on a turned cylinder", near(tb[0][0], -2, 1e-6) && near(tb[1][0], 2, 1e-6) && near(tb[0][2], -2, 1e-6) && near(tb[1][2], 2, 1e-6), JSON.stringify(tb));
+for (const p of [sw.brep, moved, twins, tilted]) W.destroy(p);
+
 // files
 const back = W.readBrep(W.writeBrep(cut, false), false);
 check(".smb round trip", near(vol(back), vol(cut)));

@@ -13,13 +13,20 @@ intersections, healing, tessellation. WASMLib builds its `SMLib` and `SM_API` so
   Brep's topology; the analytic surface or curve under a face or edge (B-splines that are really lines or circular
   arcs say so); outward normals; meshes as typed arrays grouped by face; edge polylines; mirror and general affine
   transforms; SMLib's own `.smb` files.
+- **Solids SMLib has no call for** (`bind/build.cpp`): a **screw sweep** — a closed profile moved along an axis while
+  it turns about it (threads, helical gears, twisted vases) — as one B-spline face per profile curve, fitted to the
+  true screw surface within a tolerance you give, its faces glued along the edges known to meet (SMLib's general stitch
+  searches every pair: most of the time on a long thread) and its volume returned exactly; **`mergeDisjoint`**, Breps
+  copied side by side into one with no intersecting (SM_API's list union drops pieces of disjoint ones); and
+  **`brepBox`**, a bounding box as quick as SMLib's own but tight on turned round faces, whose control nets bulge up
+  to two fifths of a radius outside them (SMLib's tight box is ~800× slower on a plate with 48 holes).
 - **A STEP (AP214) writer** — SMLib has none. Planes, cylinders, cones, spheres, tori, lines, circles and ellipses
   are written as such, everything else as (rational) B-splines from SMLib's own control nets, with names and
   colours. Checked by reading the files back into OpenCascade (volumes agree, shapes valid).
 
 | | |
 |---|---|
-| WebAssembly | 6.9 MB (2.4 MB gzip, 2.0 MB brotli) |
+| WebAssembly | 7.0 MB (2.4 MB gzip, 2.0 MB brotli) |
 | Start-up | ~40 ms to instantiate in Node 22 |
 | Upstream's SM_API test suite | **127 / 127 pass** in WebAssembly (78 s) — and natively (73 s, g++ -O2): within ~7% of native |
 | Build | Emscripten 7.0: `-O3 -flto -msimd128 -fwasm-exceptions`, 16 MB stack, growable heap to 4 GB |
@@ -72,28 +79,30 @@ npm test                                 # WASMLib's own checks of its JavaScrip
 WASMLib was built to compare SMLib with OpenCascade inside [DadCAD](https://github.com/au12/DadCAD), whose modelling
 engine runs on a kernel interface with interchangeable backends. The full head-to-head — the same parts built by the
 same engine on OpenCascade 7 (opencascade.js), OpenCascade 8 (occt-wasm), WASMLib and smlibwasm — is in DadCAD's
-[`docs/kernel.md`](https://github.com/au12/DadCAD/blob/kernel-interface/docs/kernel.md). In short (November 2026,
-Node 22, median of 3):
+[`docs/kernel.md`](https://github.com/au12/DadCAD/blob/main/docs/kernel.md), with what the screw sweep changed. In
+short (November 2026, Node 22, median of 3):
 
 | | OpenCascade 7 (opencascade.js) | WASMLib | smlibwasm |
 |---|---:|---:|---:|
 | DadCAD's engine tests (220) | 220 | 220 | 220 |
 | WebAssembly, brotli | 5.7 MB | **2.0 MB** | 2.6 MB |
-| Load | 290 ms | **84 ms** | 130 ms |
-| Box with every edge filleted | **44 ms** | 100 ms | 92 ms |
-| 48 holes cut one at a time | 696 ms | **348 ms** | 523 ms |
-| M8 bolt, real thread: build + STL mesh | 4.9 s | **2.1 s** | 4.4 s |
-| Helical gear | **594 ms** | 1 885 ms | 1 746 ms |
-| STEP export of a filleted box | 51 ms | **40 ms** | 105 ms |
+| Load | 295 ms | **148 ms** | 157 ms |
+| Box with every edge filleted | **65 ms** | 130 ms | 130 ms |
+| 48 holes cut one at a time | 830 ms | **349 ms** | 642 ms |
+| M8 bolt, real thread: build + STL mesh | 6.5 s | **1.4 s** | 5.9 s |
+| M8 nut, tapped hole: build | 1.8 s | **0.15 s** | 9.1 s |
+| Helical gear | **1.0 s** | 1.2 s | 2.4 s |
+| STEP export of a filleted box | 86 ms | **54 ms** | 148 ms |
 
 Every part builds valid with the same volume on each. WASMLib beats smlibwasm on 10 of 12 parts. Against OpenCascade
-it wins on meshing and some booleans, but it is 1.2–4× slower on fillets, shells, text and gears. Threads build 15×
-slower, because SMLib has no screw sweep and a twist has to be lofted.
+it wins on meshing, some booleans and the tapped nut; a bolt builds about 4× slower (the screw sweep brought that down
+from 15×), and fillets, shells, text and knurls are 1.3–4.7× slower.
 
 ## What SMLib doesn't do
 
 No STEP or IGES import, no conversion of a mesh into a Brep, no draft of existing faces, no two-distance chamfer, no
-imprinting of curves onto a face (only projecting through a whole body). DadCAD's backend builds the last three from
+imprinting of curves onto a face (only projecting through a whole body), no twisted extrusion (WASMLib's screw sweep
+is that). DadCAD's backend builds the last three from
 what SMLib does have; see its `src/kernel/geom/wasmlib`.
 
 ## Licence

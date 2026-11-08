@@ -87,6 +87,20 @@ export interface Objects {
   keepFaces(b: Ptr<"SmBrep">, faces: Ptr<"SmFace">[], merge: boolean): Ptr<"SmBrep">;
   /** one Brep with copies of every face of these Breps, side by side (no intersecting or stitching: sew it after) */
   combineSheets(breps: Ptr<"SmBrep">[]): Ptr<"SmBrep">;
+  /** one new Brep holding copies of all of these, side by side with no intersecting — for Breps that don't touch
+   *  (several tools then cut or joined in one boolean) */
+  mergeDisjoint(breps: Ptr<"SmBrep">[]): Ptr<"SmBrep">;
+  /**
+   * A twisted extrusion as a solid: the closed profile `curves` (loops in a plane square to `axis`, left alone) moved
+   * by `move` while turning `angleDeg` about the axis through `origin` (right-handed). One B-spline face per profile
+   * curve, fitted to the true screw surface within `tol` (its control points' helices, cubic, ends exact), and the
+   * profile and its turned copy as the flat ends. `volume`: exact (the profile's area × the distance along the axis);
+   * `steps`: how many fitted steps the turn took.
+   */
+  screwSweep(curves: Ptr<"SmCurve">[], origin: V3, axis: V3, move: V3, angleDeg: number, tol: number): { brep: Ptr<"SmBrep">; volume: number; steps: number; glued: boolean };
+  /** a Brep's bounding box, quick and close: the control nets' box, with the round faces that reach outside the rest
+   *  (whose nets bulge — a turned cylinder's by up to two fifths of its radius) tightened, from their edges where that's exact */
+  brepBox(b: Ptr<"SmBrep">): [V3, V3];
 
   /** triangles of a whole Brep, grouped by face, normals outward */
   mesh(b: Ptr<"SmBrep">, params: TessellationParams | null): MeshArrays;
