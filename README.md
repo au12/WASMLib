@@ -4,8 +4,14 @@
 
 [SMLib](https://github.com/NVIDIA-Omniverse/usd-brep) is the NURBS / analytic boundary-representation kernel NVIDIA
 open-sourced (Apache-2.0) in usd-brep: booleans, fillets and chamfers, shelling and offsets, sweeps, skins,
-intersections, healing, tessellation. WASMLib builds its `SMLib` and `SM_API` sources — unmodified, from the
-`upstream` submodule (usd-brep 1.0.1) — for the browser, workers and Node, and adds what a JavaScript caller needs:
+intersections, healing, tessellation. WASMLib builds its `SMLib` and `SM_API` sources from the `upstream` submodule
+(usd-brep 1.0.1) for the browser, workers and Node, and adds what a JavaScript caller needs:
+
+- **Five speed patches** ([`patches/`](patches/README.md)), applied at build time to copies so the submodule stays
+  untouched: surface derivatives summed the textbook way, booleans that skip face pairs (and coplanar edges) that
+  can't meet, volumes that integrate the volume rather than every mass property, and point tests on flat faces that
+  skip loops the point is nowhere near. The same answers (volumes within the accuracy asked for); in DadCAD engraved
+  text builds 2.1× faster, a knurled knob 1.7–1.9×, a plate of 48 holes 1.6×, a filleted box 1.4×.
 
 - **All of SM_API, one to one** — 176 functions, generated from upstream's headers (`tools/gen_smapi.py`), with
   TypeScript declarations carrying upstream's parameter notes.
@@ -28,7 +34,7 @@ intersections, healing, tessellation. WASMLib builds its `SMLib` and `SM_API` so
 |---|---|
 | WebAssembly | 7.0 MB (2.4 MB gzip, 2.0 MB brotli) |
 | Start-up | ~40 ms to instantiate in Node 22 |
-| Upstream's SM_API test suite | **127 / 127 pass** in WebAssembly (78 s) — and natively (73 s, g++ -O2): within ~7% of native |
+| Upstream's SM_API test suite | **127 / 127 pass** with the patches, as without — in WebAssembly (57 s; 78 s without them) and natively (53 s, g++ -O2; 73 s without) |
 | Build | Emscripten 7.0: `-O3 -flto -msimd128 -fwasm-exceptions`, 16 MB stack, growable heap to 4 GB |
 | Licence | Apache-2.0 (WASMLib and SMLib alike) |
 
@@ -79,24 +85,27 @@ npm test                                 # WASMLib's own checks of its JavaScrip
 WASMLib was built to compare SMLib with OpenCascade inside [DadCAD](https://github.com/au12/DadCAD), whose modelling
 engine runs on a kernel interface with interchangeable backends. The full head-to-head — the same parts built by the
 same engine on OpenCascade 7 (opencascade.js), OpenCascade 8 (occt-wasm), WASMLib and smlibwasm — is in DadCAD's
-[`docs/kernel.md`](https://github.com/au12/DadCAD/blob/main/docs/kernel.md), with what the screw sweep changed. In
-short (November 2026, Node 22, median of 3):
+[`docs/kernel.md`](https://github.com/au12/DadCAD/blob/main/docs/kernel.md), with what the screw sweep and the
+patches changed. In short (November 2026, Node 22, median of 3):
 
 | | OpenCascade 7 (opencascade.js) | WASMLib | smlibwasm |
 |---|---:|---:|---:|
 | DadCAD's engine tests (220) | 220 | 220 | 220 |
 | WebAssembly, brotli | 5.7 MB | **2.0 MB** | 2.6 MB |
-| Load | 295 ms | **148 ms** | 157 ms |
-| Box with every edge filleted | **65 ms** | 130 ms | 130 ms |
-| 48 holes cut one at a time | 830 ms | **349 ms** | 642 ms |
-| M8 bolt, real thread: build + STL mesh | 6.5 s | **1.4 s** | 5.9 s |
-| M8 nut, tapped hole: build | 1.8 s | **0.15 s** | 9.1 s |
-| Helical gear | **1.0 s** | 1.2 s | 2.4 s |
-| STEP export of a filleted box | 86 ms | **54 ms** | 148 ms |
+| Load | 440 ms | **178 ms** | 322 ms |
+| Fillet a box's 12 edges, then its volume | 33 ms | **32 ms** | 88 ms |
+| “DadCAD 2026” engraved into a plate | 809 ms | **721 ms** | 2 161 ms |
+| 48 holes cut one at a time | 887 ms | **350 ms** | 778 ms |
+| M8 bolt, real thread: build + STL mesh | 8.9 s | **1.5 s** | 7.9 s |
+| M8 nut, tapped hole: build | 2.0 s | **0.18 s** | 10.6 s |
+| Helical gear | 0.94 s | **0.88 s** | 2.6 s |
+| Knurled knob | **2.2 s** | 2.6 s | 9.0 s |
+| Shell a filleted box | **65 ms** | 229 ms | 593 ms |
+| STEP export of a filleted box | 122 ms | **41 ms** | 147 ms |
 
-Every part builds valid with the same volume on each. WASMLib beats smlibwasm on 10 of 12 parts. Against OpenCascade
-it wins on meshing, some booleans and the tapped nut; a bolt builds about 4× slower (the screw sweep brought that down
-from 15×), and fillets, shells, text and knurls are 1.3–4.7× slower.
+Every part builds valid with the same volume on each, and WASMLib beats smlibwasm on all 12. Against OpenCascade it
+is now level or ahead on fillets, text, gears, booleans one at a time and the tapped nut; still slower on shells (3.5×),
+one boolean with many tools (2.6×), a bolt's thread (2.2×) and knurls (1.2×).
 
 ## What SMLib doesn't do
 

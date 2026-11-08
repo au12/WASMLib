@@ -1,0 +1,48 @@
+diff --git a/source/SMLib/src/SmTopologyIntersector.cpp b/source/SMLib/src/SmTopologyIntersector.cpp
+index 3929b44..18565ae 100644
+--- a/source/SMLib/src/SmTopologyIntersector.cpp
++++ b/source/SMLib/src/SmTopologyIntersector.cpp
+@@ -7,6 +7,7 @@
+ **********************************************************************/
+ 
+ #include "StdAfx.h"
++#include <vector>
+ 
+ #include <SmTopologyIntersector.h>
+ 
+@@ -1734,6 +1735,16 @@ TCHAR     sDebugBuff[SM_TBLOCK_SIZE] ;
+ #endif // SM_USE_TBB
+ 
+   // for every m_pBrep/m_pOther face pair - find and store coincidences and XSections
++  // WASMLib: every face's box once (the cheap kind, as large as the face or larger), so face pairs whose boxes are
++  // apart by more than the tolerances — which can't meet — skip the surface/surface intersection and classification
++  // below; with thousands of faces on each side (a knurl) almost every pair is such a pair
++  std::vector<SmExtent3d> sFaceBox1(lNumFaces1), sFaceBox2(lNumFaces2);
++  std::vector<char>       bFaceBox1(lNumFaces1, 0), bFaceBox2(lNumFaces2, 0);
++  for(ii=0;ii<lNumFaces1;ii++)
++    { bFaceBox1[ii] = sFaces1[ii]->CalculateBoundingBox(sFaceBox1[ii]) == SM_SUCCESS && !sFaceBox1[ii].HasNegativeVolume(); }
++  for(jj=0;jj<lNumFaces2;jj++)
++    { bFaceBox2[jj] = sFaces2[jj]->CalculateBoundingBox(sFaceBox2[jj]) == SM_SUCCESS && !sFaceBox2[jj].HasNegativeVolume(); }
++
+   for(ii=0;ii<lNumFaces1;ii++)
+     {
+       SmFace *pF1 = sFaces1[ii];
+@@ -1743,6 +1754,18 @@ TCHAR     sDebugBuff[SM_TBLOCK_SIZE] ;
+         {
+           SmFace *pF2 = sFaces2[jj];
+ 
++          if (bFaceBox1[ii] && bFaceBox2[jj])
++            {
++#ifdef SM_USE_NEWTOL
++              const double dBoxTol = SmTolerance::GetXSectTol3d( pF1, pF2, m_dThisApproxTol3d );
++#else
++              const double dBoxTol = this->GetThisApproxTol3d();
++#endif
++              const double dMargin = 10.0 * dBoxTol + SmTol::GetZoneTol3d( pF1 ) + SmTol::GetZoneTol3d( pF2 );
++              if (sFaceBox1[ii].AreDisjoint(sFaceBox2[jj], dMargin))
++                { continue; }
++            }
++
+ #ifdef SM_DEBUG_CODE
+           if ( bDebugMe ) 
+             {

@@ -17,7 +17,9 @@ case "${1:-}" in
     ninja -C build-wasm wasmlib
     if [ "${1:-}" = "test" ]; then
       ninja -C build-wasm sm_api_test
-      (cd upstream/tests/SM_API_test && time node ../../../build-wasm/sm_api_test.js | tail -4)
+      # (Emscripten writes CommonJS, and this package is "type": "module": run it as .cjs)
+      cp build-wasm/sm_api_test.js build-wasm/sm_api_test.cjs
+      (cd upstream/tests/SM_API_test && time node ../../../build-wasm/sm_api_test.cjs | tail -4)
     fi ;;
 esac
 ls -la dist/
