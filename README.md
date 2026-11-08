@@ -12,9 +12,8 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   written for the degree), booleans that skip face pairs, coplanar edges, edges and vertices that can't meet, deleting
   faces and closing regions without walking the whole shell each time, loop lists gathered in one pass, volumes that
   integrate the volume rather than every mass property, and point tests on flat faces that skip loops the point is
-  nowhere near. The same answers (volumes within the accuracy asked for). In WebAssembly, against the unchanged
-  SMLib, a knurl's 3 400-facet join to its knob is 3.6× quicker on top of an earlier 3×, a letter cut from a plate
-  1.3× on top of 2.1×, a shell 1.2× on top of 1.3×.
+  nowhere near. The same answers (volumes within the accuracy asked for); in DadCAD a knurled knob builds 3.9× faster
+  than on the unchanged SMLib, engraved text 2.2–2.4×, a plate of 48 holes 1.7×, a filleted box 1.4×, a shell 1.3×.
 
 - **All of SM_API, one to one** — 176 functions, generated from upstream's headers (`tools/gen_smapi.py`), with
   TypeScript declarations carrying upstream's parameter notes.
@@ -95,20 +94,20 @@ changes to SMLib made. In short (November 2026, Node 22, median of 3):
 |---|---:|---:|---:|
 | DadCAD's engine tests (220) | 220 | 220 | 220 |
 | WebAssembly, brotli | 5.7 MB | **2.0 MB** | 2.6 MB |
-| Load | 440 ms | **178 ms** | 322 ms |
-| Fillet a box's 12 edges, then its volume | 33 ms | **32 ms** | 88 ms |
-| “DadCAD 2026” engraved into a plate | 809 ms | **721 ms** | 2 161 ms |
-| 48 holes cut one at a time | 887 ms | **350 ms** | 778 ms |
-| M8 bolt, real thread: build + STL mesh | 8.9 s | **1.5 s** | 7.9 s |
-| M8 nut, tapped hole: build | 2.0 s | **0.18 s** | 10.6 s |
-| Helical gear | 0.94 s | **0.88 s** | 2.6 s |
-| Knurled knob | **2.2 s** | 2.6 s | 9.0 s |
-| Shell a filleted box | **65 ms** | 229 ms | 593 ms |
-| STEP export of a filleted box | 122 ms | **41 ms** | 147 ms |
+| Load | 360 ms | **123 ms** | 216 ms |
+| Fillet a box's 12 edges, then its volume | 38 ms | **33 ms** | 111 ms |
+| “DadCAD 2026” engraved into a plate | 699 ms | **622 ms** | 2 039 ms |
+| 48 holes cut one at a time | 991 ms | **383 ms** | 726 ms |
+| M8 bolt, real thread: build + STL mesh | 7.5 s | **1.4 s** | 6.5 s |
+| M8 nut, tapped hole: build | 2.0 s | **0.17 s** | 9.8 s |
+| Helical gear | 0.94 s | **0.73 s** | 2.8 s |
+| Knurled knob | 2.0 s | **1.2 s** | 8.1 s |
+| Shell a filleted box | **58 ms** | 183 ms | 576 ms |
+| STEP export of a filleted box | 97 ms | **61 ms** | 141 ms |
 
 Every part builds valid with the same volume on each, and WASMLib beats smlibwasm on all 12. Against OpenCascade it
-is now level or ahead on fillets, text, gears, booleans one at a time and the tapped nut; still slower on shells (3.5×),
-one boolean with many tools (2.6×), a bolt's thread (2.2×) and knurls (1.2×).
+is now ahead on knurls, text, gears, the tapped nut, booleans one at a time and meshing, and level on fillets; still
+slower on shells (3.2×), one boolean with many tools (2.7×) and a bolt's thread.
 
 ## What SMLib doesn't do
 
