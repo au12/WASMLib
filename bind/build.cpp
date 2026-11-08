@@ -8,12 +8,14 @@
 //   brepFromFaces a solid (or shell) from faces given as NURBS surfaces bounded by loops of NURBS curves — a shape
 //                 from another kernel brought into SMLib (DadCAD's STEP and mesh imports, read by OpenCascade)
 //   sweepPath     a profile swept along a path of several curves joined end to end, with mitred corners where the
-//                 path turns (SMLib's curve sweep takes one curve; its planar-path sweep re-places the profile)
+//                 path turns, the profile kept where it was drawn (SMLib's curve sweep takes one curve and moves the
+//                 profile onto it; its planar-path sweep re-places the profile)
 #include "wl.h"
 #include "geom.h"
 
 #include <SmBSplineCurve.h>
 #include <SmBSplineSurface.h>
+#include <SmCompositeCurve.h>
 #include <SmContext.h>
 #include <SmCurve.h>
 #include <SmExtent2d.h>
@@ -567,30 +569,6 @@ SmVector3d curve_end(const SmCurve* c, bool end, SmVector3d* tangent = nullptr) 
     if (tangent) *tangent = unit(d);
     return p;
 }
-/** the outer loop of a face as free curves, in loop order, each running along the loop */
-std::vector<SmCurve*> loop_curves(SmFace* f) {
-    SmTArray<ULONG> counts;
-    SmTArray<SmEdge*> es;
-    SmTArray<SmOrientType> os;
-    wl::check(SmApiFaceGetBoundaryLoops(f, counts, es, os), "SmApiFaceGetBoundaryLoops");
-    std::vector<SmCurve*> out;
-    for (ULONG i = 0; i < (counts.GetSize() ? counts[0] : 0); ++i) {
-        SmCurve* c = nullptr;
-        wl::check(es[i]->GetCurve()->Copy(*SmApiGetOrCreateContext(), c), "SmCurve::Copy");
-        SmExtent1d iv = es[i]->GetInterval();
-        const SmExtent1d nat = c->GetNaturalInterval();
-        if ((iv.GetMin() > nat.GetMin() + 1e-12 || iv.GetMax() < nat.GetMax() - 1e-12) && c->Trim(iv) != SM_SUCCESS) {
-            delete c;
-            throw std::runtime_error("sweepPath: trimming a profile curve failed");
-        }
-        if (os[i] == SM_OT_OPPOSITE) {
-            SmExtent1d now;
-            c->ReverseParameterization(c->GetNaturalInterval(), now);
-        }
-        out.push_back(c);
-    }
-    return out;
-}
 /** the rigid motion turning by `a` radians about the unit axis n through C */
 SmAxis2Placement turn_about(const SmVector3d& C, const SmVector3d& n, double a) {
     SmAxis2Placement m;
@@ -609,12 +587,119 @@ SmBrep* half_space(const SmVector3d& C, const SmVector3d& n, int sign, double si
 }
 
 /**
+ * A closed profile swept along one curve, kept where it lies. SMLib's curve sweep moves the profile's first point (or
+ * its middle) onto the path's start before sweeping, which moves a profile drawn off the path. This is the same sweep
+ * without that move: the path's start put at the origin heading along x and the profile moved with it, SMLib's sweep
+ * surface (NLib's: a frame that turns with the path as little as it can) for each chain of profile curves, split where
+ * the chain has corners, both ends capped flat, stitched, and moved back. `endProf` gets the profile where the sweep
+ * ends (free curves, the caller's).
+ */
+SmBrep* sweep_along(const std::vector<SmCurve*>& prof, const SmBSplineCurve* path, std::vector<SmCurve*>& endProf) {
+    const SmContext* ctx = SmApiGetOrCreateContext();
+    const double tol = SM_ZONE_TOL_3D;
+    const SmVector3d O(0, 0, 0), X(1, 0, 0), Y(0, 1, 0);
+    SmVector3d pd[2];
+    wl::check(path->Evaluate(path->GetNaturalInterval().GetMin(), 1, TRUE, pd), "SmBSplineCurve::Evaluate");
+    SmAxis2Placement toOrigin(O, X, Y);
+    toOrigin.Translate(scl(pd[0], -1));
+    SmVector3d fx, fy, fz;
+    pd[1].MakeUnitOrthoVectors(nullptr, fx, fy, fz);
+    const SmAxis2Placement rot(O, fx, fy, O, X, Y);
+    SmAxis2Placement rotBack, toOriginBack;
+    rot.Invert(rotBack);
+    toOrigin.Invert(toOriginBack);
+
+    std::vector<SmCurve*> loose;                 // freed on the way out
+    SmTArray<SmBSplineCurve*> nurbs;
+    SmTArray<SmCompositeCurve*> comps;
+    SmBrep* brep = nullptr;
+    struct Free {
+        std::vector<SmCurve*>& l; SmTArray<SmBSplineCurve*>& n; SmTArray<SmCompositeCurve*>& c; SmBrep*& b;
+        ~Free() { for (auto* x : l) delete x; for (ULONG i = 0; i < n.GetSize(); ++i) delete n[i]; for (ULONG i = 0; i < c.GetSize(); ++i) delete c[i]; delete b; }
+    } fr{loose, nurbs, comps, brep};
+
+    SmBSplineCurve* tr = new (*ctx) SmBSplineCurve(*path);
+    loose.push_back(tr);
+    tr->Transform(toOrigin);
+    tr->Transform(rot);
+    for (auto* c : prof) {
+        SmBSplineCurve* b = nullptr;
+        if (const auto* bc = dynamic_cast<const SmBSplineCurve*>(c)) b = new (*ctx) SmBSplineCurve(*bc);
+        else {
+            SmCurve* k = nullptr;
+            wl::check(c->CopyAnalyticAsNurb(*ctx, k), "SmCurve::CopyAnalyticAsNurb");
+            b = dynamic_cast<SmBSplineCurve*>(k);
+            if (!b) { delete k; throw std::runtime_error("sweepPath: a profile curve has no B-spline form"); }
+        }
+        b->Transform(toOrigin);
+        b->Transform(rot);
+        nurbs.Add(b);
+    }
+    brep = new (*ctx) SmBrep();
+    // the profile's curves joined into chains (each chain one sweep surface); the chains own what they took
+    wl::check(SmCompositeCurve::BuildCompositesFromCurves(*ctx, nurbs, TRUE, 0.0, brep->GetTolerance(), 0.0, 0.0, 0.0, 0.0, comps), "SmCompositeCurve::BuildCompositesFromCurves");
+    for (ULONG i = 0; i < comps.GetSize(); ++i) {
+        ULONG dim = 0;
+        SmBoolean closedC = FALSE;
+        SmTArray<SmCurve*> taken;
+        wl::check(comps[i]->GetCanonical(dim, taken, closedC), "SmCompositeCurve::GetCanonical");
+        for (ULONG j = 0; j < taken.GetSize(); ++j)
+            for (ULONG k = 0; k < nurbs.GetSize(); ++k)
+                if (nurbs[k] == taken[j]) nurbs[k] = nullptr;
+    }
+    SmTArray<SmCurve*> starts, ends;
+    for (ULONG i = 0; i < comps.GetSize(); ++i) {
+        SmBSplineCurve* chain = nullptr;
+        wl::check(comps[i]->MakeCompositeNurb(*ctx, chain), "SmCompositeCurve::MakeCompositeNurb");
+        SmBSplineSurface* srf = nullptr;
+        const SmStatus st = SmBSplineSurface::CreateSweepSurface(*ctx, chain, tr, nullptr, FALSE, tol, srf);
+        delete chain;
+        wl::check(st, "SmBSplineSurface::CreateSweepSurface");
+        // u runs along the path: the profile where the sweep starts and ends
+        const SmExtent2d dom = srf->GetNaturalUVDomain();
+        SmBSplineCurve *c0 = nullptr, *c1 = nullptr;
+        if (srf->CreateIsoParametricCurve(*ctx, SM_SP_U, dom.GetMin().x, tol / 10.0, c0) != SM_SUCCESS ||
+            srf->CreateIsoParametricCurve(*ctx, SM_SP_U, dom.GetMax().x, tol / 10.0, c1) != SM_SUCCESS) {
+            delete c0; delete c1; delete srf;
+            throw std::runtime_error("sweepPath: the sweep's ends couldn't be found");
+        }
+        starts.Add(c0); ends.Add(c1);
+        loose.push_back(c0); loose.push_back(c1);
+        SmTArray<SmFace*> faces;
+        wl::check(brep->CreateFacesFromSurface(srf, dom, SM_CT_G1, faces), "SmBrep::CreateFacesFromSurface");
+    }
+    brep->Transform(rotBack);
+    brep->Transform(toOriginBack);
+    for (ULONG i = 0; i < starts.GetSize(); ++i) {
+        starts[i]->Transform(rotBack); starts[i]->Transform(toOriginBack);
+        ends[i]->Transform(rotBack); ends[i]->Transform(toOriginBack);
+        SmCurve* k = nullptr;
+        wl::check(ends[i]->Copy(*ctx, k), "SmCurve::Copy");
+        endProf.push_back(k);
+    }
+    // the two ends capped; the Brep owns the curves its faces took
+    const auto cap = [&](SmTArray<SmCurve*>& cs) {
+        SmTArray<SmFace*> faces;
+        const SmStatus st = brep->CreatePlanarFacesWith3DCurves(nullptr, cs, tol, faces);
+        for (ULONG i = 0; i < cs.GetSize(); ++i)
+            if (cs[i]->GetOwner() != nullptr) loose.erase(std::remove(loose.begin(), loose.end(), cs[i]), loose.end());
+        wl::check(st, "SmBrep::CreatePlanarFacesWith3DCurves");
+    };
+    cap(starts);
+    cap(ends);
+    brep->StitchAndOrient();
+    SmBrep* out = brep;
+    brep = nullptr;
+    return out;
+}
+
+/**
  * A closed profile swept along a path of several curves (as OpenCascade's pipe shell with right-corner transitions).
  * `profile`: one closed loop of free curves, sitting at the path's start; `path`: free curves in order, each starting
  * where the last one ends (either way round: they're turned to run on, and the whole path is run from whichever end
  * the profile sits at). Each curve is swept on its own, the profile kept where it lies: along a line it's pushed (a
- * prism), round an arc it's turned about the arc's axis (planes, cylinders and tori, exact); along anything else SMLib's
- * curve sweep carries it, which keeps only a profile centred on the path in place (others are refused). The next piece
+ * prism), round an arc it's turned about the arc's axis (planes, cylinders and tori, exact); along anything else it's
+ * carried by SMLib's sweep surface without being moved onto the path first (sweep_along). The next piece
  * starts from where the last one left the profile — turned about the corner by the turn the path makes there, if it
  * turns by more than `cornerDeg` (a smooth join carries straight on). Such a corner is closed with a mitre: each pipe runs on straight past the corner and is cut where
  * they meet, on the plane halfway between their directions. All the pieces are joined. Inputs are left alone; returns
@@ -772,12 +857,7 @@ val sweepPath(const val& profileV, const val& pathV, double tol, double cornerDe
             breps.push_back(piece);
             if (!last) endProf = moved(cur, turn_about(O, z, a));
         } else {
-            // any other curve: SMLib's curve sweep, which carries the profile's middle along the path — so only a
-            // profile centred on the path keeps its place
-            SmExtent3d pb;
-            for (auto* k : cur) { SmExtent3d b; k->CalculateBoundingBox(k->GetNaturalInterval(), &b); pb.AddPoint3d(b.GetMin()); pb.AddPoint3d(b.GetMax()); }
-            if (len(sub(pb.GetMid(), S)) > std::max(tol, 1e-6 * reach))
-                throw std::runtime_error("sweepPath: a profile that isn't centred on the path, along a curve that isn't a line or an arc");
+            // any other curve: SMLib's sweep surface, the profile kept where it lies (sweep_along)
             SmBSplineCurve* seg = dynamic_cast<SmBSplineCurve*>(path[i]);
             if (!seg) {
                 SmCurve* nurb = nullptr;
@@ -786,17 +866,11 @@ val sweepPath(const val& profileV, const val& pathV, double tol, double cornerDe
                 seg = dynamic_cast<SmBSplineCurve*>(nurb);
                 if (!seg) throw std::runtime_error("sweepPath: a path curve has no B-spline form");
             }
-            SmSweepOptions opts;
-            opts.bCapEndsArg = TRUE;
-            opts.bMoveProfileCenterToPath = TRUE;
-            SmTArray<SmFace*> starts, sides, ends;
-            wl::check(SmApiCreateCurveSweep(cs, seg, nullptr, nullptr, &opts, piece, &starts, &sides, &ends), "SmApiCreateCurveSweep");
+            std::vector<SmCurve*> e;
+            piece = sweep_along(cur, seg, e);
             breps.push_back(piece);
-            if (!last) {
-                if (!ends.GetSize()) throw std::runtime_error("sweepPath: a piece of the sweep has no end face");
-                endProf = loop_curves(ends[0]);
-                owned.insert(owned.end(), endProf.begin(), endProf.end());
-            }
+            owned.insert(owned.end(), e.begin(), e.end());
+            if (!last) endProf = e;
         }
         join(piece);
         if (last) break;

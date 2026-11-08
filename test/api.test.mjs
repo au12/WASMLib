@@ -133,6 +133,20 @@ const swept2 = W.sweepPath([ring], back2, 1e-5, 0.5);
 check("sweepPath: a path given the other way round runs from the profile", near(vol(swept2), 4 * Math.PI * 40, 1e-6), String(vol(swept2)));
 for (const x of [ring, ...ell, ...back2, swept, swept2]) W.destroy(x);
 
+// along a free-form curve (an S in the xy plane), a Ø2 circle drawn half a millimetre above the path's start: it stays
+// there (SMLib's own curve sweep would move it onto the path), and its volume is its area times the path's length
+const s3 = W.SmApiCreateCurveInterpPoints([[0, 0, 0], [6, 4, 0], [12, -3, 0], [20, 2, 0]], 1);
+const sInfo = W.curveInfo(s3), t3 = W.curveSample(s3, [0], true);
+const tan = [t3[3], t3[4], t3[5]], side = [-tan[1], tan[0], 0];
+const disc3 = W.SmApiCreateCircle_Circle([0, 0, 0], 1);
+W.SmApiTransform(disc3, { origin: [0, 0, 0.5], xAxis: side, yAxis: [0, 0, 1] });
+const sw3 = W.sweepPath([disc3], [s3], 1e-5, 0.5);
+const bb3 = W.SmApiBrepBoundingBox(sw3, 1);
+check("sweepPath along a free-form curve: a solid", !!W.SmApiBrepIsManifoldSolid(sw3) && W.SmApiBrepMaterialCensus(sw3).rlSolidCount === 1);
+check("sweepPath along a free-form curve: the profile stays off the path", near(bb3.rMax[2], 1.5, 1e-4) && near(bb3.rMin[2], -0.5, 1e-4), JSON.stringify(bb3));
+check("sweepPath along a free-form curve: area × length", near(vol(sw3), Math.PI * sInfo.length, 1e-4), `${vol(sw3)} vs ${Math.PI * sInfo.length}`);
+for (const x of [s3, disc3, sw3]) W.destroy(x);
+
 // errors name the call and the status
 try { W.SmApiCreateBox([0, 0, 0], -1, 1, 1); check("a bad call throws", false); }
 catch (e) { check("a bad call throws with the status", /SmApiCreateBox failed: SM_ERR_INVALID_INPUT/.test(e.message), e.message); }

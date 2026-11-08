@@ -29,12 +29,12 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   **`brepBox`**, a bounding box as quick as SMLib's own but tight on turned round faces, whose control nets bulge up
   to two fifths of a radius outside them (SMLib's tight box is ~800× slower on a plate with 48 holes).
 - **Sweeps along a path of several curves** (`sweepPath`) — SMLib's curve sweep takes one curve, and moves the
-  profile's first point onto it; its planar-path sweep re-places the profile by its own rule. `sweepPath` keeps the
-  profile where it was drawn: along a line it's pushed (a prism), round an arc turned about the arc's axis (planes,
-  cylinders and tori), along anything else carried by SMLib's curve sweep (a profile centred on the path). Smooth
-  joins carry on; corners are mitred, as OpenCascade's "right corner" pipe — each pipe run on to the plane halfway
-  between the two directions. Volumes and positions match OpenCascade's on straight, bent, cornered and closed paths,
-  centred or not.
+  profile's first point (or its middle) onto it; its planar-path sweep re-places the profile by its own rule.
+  `sweepPath` keeps the profile where it was drawn: along a line it's pushed (a prism), round an arc turned about the
+  arc's axis (planes, cylinders and tori), along anything else carried by SMLib's own sweep surface without being moved
+  first. Smooth joins carry on; corners are mitred, as OpenCascade's "right corner" pipe — each pipe run on to the
+  plane halfway between the two directions. Volumes and positions match OpenCascade's on straight, bent, cornered,
+  closed and free-form paths, with the profile on the path or off it.
 - **Shapes from elsewhere** (`brepFromFaces`) — faces given as NURBS surfaces with loops of NURBS curves, made one
   by one and stitched into a solid: how DadCAD brings STEP files (read in TypeScript) and OpenCascade's shapes into
   SMLib. Knots must be clamped; a solid with hollows is built whole and the hollows taken away.
