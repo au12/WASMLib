@@ -287,16 +287,19 @@ public:
         edges.emplace(e, id);
         return id;
     }
-    int face(const SmFace* f) {
+    /** a face, its outward side away from the material — or, `flip`, towards it (a void's shell, written as a shell
+     *  round the void and then turned inside out) */
+    int face(const SmFace* f, bool flip = false) {
         bool same = true;
         const int s = surface(f, same);
+        if (flip) same = !same;
         SmTArray<ULONG> counts;
         SmTArray<SmEdge*> es;
         SmTArray<SmOrientType> os;
         wl::check(SmApiFaceGetBoundaryLoops(const_cast<SmFace*>(f), counts, es, os), "SmApiFaceGetBoundaryLoops");
         // SMLib's loops run counter-clockwise round the surface's normal (the upward faceuse): round the face's outward
         // normal when its sense is +1, else the other way
-        const bool loopsAgree = face_sense(f) > 0;
+        const bool loopsAgree = (face_sense(f) > 0) != flip;
         std::vector<int> bounds;
         ULONG k = 0;
         for (ULONG l = 0; l < counts.GetSize(); ++l) {
@@ -315,24 +318,74 @@ public:
         return add("ADVANCED_FACE(''," + list(bounds.size(), [&](size_t i) { return ref(bounds[i]); }) + "," + ref(s) + "," + (same ? ".T." : ".F.") + ")");
     }
 
-    /** one Brep: a MANIFOLD_SOLID_BREP per closed shell (an open one: a SHELL_BASED_SURFACE_MODEL) */
+    /**
+     * One Brep: a MANIFOLD_SOLID_BREP per solid (a BREP_WITH_VOIDS when there are hollows inside it), or, not a solid, a
+     * SHELL_BASED_SURFACE_MODEL per shell. A face goes with the shell on its material side: SMLib's upward faceuse is
+     * on whichever side the surface's normal points to, so on a hole's wall it's in the solid's shell and on the outside
+     * faces in the infinite region's — grouping by it split a plate from its hole.
+     */
     std::vector<int> body(const SmBrep* b, const std::string& name, bool solid) {
         SmTArray<SmFace*> all;
         b->GetFaces(all);
+        const SmRegion* inf = b->GetInfiniteRegion();
+        const auto empty = [&](const SmFaceuse* u) {
+            const SmRegion* r = u && u->GetShell() ? u->GetShell()->GetRegion() : nullptr;
+            return !r || r == inf || r->IsVoid() == TRUE;
+        };
+        struct Shell { std::vector<const SmFace*> faces; const SmRegion* solid = nullptr; bool outer = true; };
         std::vector<const SmShell*> order;
-        std::unordered_map<const SmShell*, std::vector<int>> by;
+        std::unordered_map<const SmShell*, Shell> by;
         for (ULONG i = 0; i < all.GetSize(); ++i) {
-            const SmFaceuse* fu = all[i]->GetUpwardFaceuse();
-            const SmShell* sh = fu ? fu->GetShell() : nullptr;
-            if (!by.count(sh)) order.push_back(sh);
-            by[sh].push_back(face(all[i]));
+            const SmFaceuse* up = all[i]->GetUpwardFaceuse();
+            const SmFaceuse* mate = up ? up->GetMate() : nullptr;
+            const SmFaceuse* in = solid && up && mate && empty(up) && !empty(mate) ? mate : up;  // the material side
+            const SmShell* sh = in ? in->GetShell() : nullptr;
+            auto it = by.find(sh);
+            if (it == by.end()) {
+                order.push_back(sh);
+                it = by.emplace(sh, Shell()).first;
+                if (solid && in && !empty(in)) {
+                    it->second.solid = sh->GetRegion();
+                    const SmFaceuse* out = in->GetMate();
+                    const SmRegion* beyond = out && out->GetShell() ? out->GetShell()->GetRegion() : nullptr;
+                    it->second.outer = !beyond || beyond == inf;
+                }
+            }
+            it->second.faces.push_back(all[i]);
         }
         std::vector<int> out;
-        for (const SmShell* sh : order) {
-            const auto& fs = by[sh];
-            const std::string faces = list(fs.size(), [&](size_t i) { return ref(fs[i]); });
-            if (solid) out.push_back(add("MANIFOLD_SOLID_BREP(" + S(name) + "," + ref(add("CLOSED_SHELL(''," + faces + ")")) + ")"));
-            else out.push_back(add("SHELL_BASED_SURFACE_MODEL(" + S(name) + ",(" + ref(add("OPEN_SHELL(''," + faces + ")")) + "))"));
+        const auto closed = [&](const Shell& sh, bool flip) {
+            std::vector<int> fs;
+            for (const SmFace* f : sh.faces) fs.push_back(face(f, flip));
+            return add("CLOSED_SHELL(''," + list(fs.size(), [&](size_t i) { return ref(fs[i]); }) + ")");
+        };
+        if (!solid) {
+            for (const SmShell* k : order) {
+                std::vector<int> fs;
+                for (const SmFace* f : by[k].faces) fs.push_back(face(f));
+                out.push_back(add("SHELL_BASED_SURFACE_MODEL(" + S(name) + ",(" + ref(add("OPEN_SHELL(''," + list(fs.size(), [&](size_t i) { return ref(fs[i]); }) + ")")) + "))"));
+            }
+            return out;
+        }
+        // each solid: its outer shell, then the voids inside it
+        for (const SmShell* k : order) {
+            const Shell& o = by[k];
+            if (!o.outer) continue;
+            std::vector<int> voids;
+            for (const SmShell* v : order)
+                if (!by[v].outer && by[v].solid == o.solid && o.solid)
+                    voids.push_back(add("ORIENTED_CLOSED_SHELL('',*," + ref(closed(by[v], true)) + ",.F.)"));
+            const int shell = closed(o, false);
+            if (voids.empty()) out.push_back(add("MANIFOLD_SOLID_BREP(" + S(name) + "," + ref(shell) + ")"));
+            else out.push_back(add("BREP_WITH_VOIDS(" + S(name) + "," + ref(shell) + "," + list(voids.size(), [&](size_t i) { return ref(voids[i]); }) + ")"));
+        }
+        // a void with no outer shell found for it (not expected): a solid of its own, as before
+        for (const SmShell* v : order) {
+            const Shell& sh = by[v];
+            if (sh.outer) continue;
+            bool placed = false;
+            for (const SmShell* k : order) placed |= by[k].outer && by[k].solid == sh.solid && sh.solid;
+            if (!placed) out.push_back(add("MANIFOLD_SOLID_BREP(" + S(name) + "," + ref(closed(sh, false)) + ")"));
         }
         return out;
     }

@@ -98,6 +98,22 @@ export interface Objects {
    * `steps`: how many fitted steps the turn took.
    */
   screwSweep(curves: Ptr<"SmCurve">[], origin: V3, axis: V3, move: V3, angleDeg: number, tol: number): { brep: Ptr<"SmBrep">; volume: number; steps: number; glued: boolean };
+  /**
+   * A solid (or shell) from faces made elsewhere — a shape from another kernel brought into SMLib. Each face: its
+   * NURBS surface (`P` x y z, `nv` per row of u; `U`, `V` every knot; `W` weights or null), `reversed` when the
+   * material is on the side the surface normal points away from, and its loops (outer first: anticlockwise seen from
+   * outside; then holes), each a chain of NURBS curves with `senses[i]` -1 where curve i runs against the loop. A
+   * curve may be given whole and cut to the stretch `from` → `to`, which runs `along` its parameter or against it
+   * (crossing a closed curve's start if need be). No loops: the whole surface. The faces are made one by one, then
+   * stitched and turned outward. `solid`: a closed manifold solid came out; `failed`: faces that couldn't be made.
+   */
+  /**
+   * A closed profile (one loop of free curves, at the path's start) swept along a path of free curves joined end to end
+   * (in order, either way round), each curve swept on its own and the corners the path turns at by more than
+   * `cornerDeg` closed with a mitre. Inputs left alone; the solid is yours.
+   */
+  sweepPath(profile: Ptr<"SmCurve">[], path: Ptr<"SmCurve">[], tol: number, cornerDeg: number): Ptr<"SmBrep">;
+  brepFromFaces(faces: { surface: { p: number; q: number; U: number[]; V: number[]; nu: number; nv: number; P: number[]; W: number[] | null }; reversed: boolean; loops: { curves: { p: number; U: number[]; P: number[]; W: number[] | null; from?: V3; to?: V3; along?: boolean }[]; senses: number[] }[] }[], tol: number): { brep: Ptr<"SmBrep">; solid: boolean; faces: number; failed: number[] };
   /** a Brep's bounding box, quick and close: the control nets' box, with the round faces that reach outside the rest
    *  (whose nets bulge — a turned cylinder's by up to two fifths of its radius) tightened, from their edges where that's exact */
   brepBox(b: Ptr<"SmBrep">): [V3, V3];

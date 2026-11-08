@@ -96,6 +96,42 @@ const back = W.readBrep(W.writeBrep(cut, false), false);
 check(".smb round trip", near(vol(back), vol(cut)));
 const step = W.stepWrite([{ brep: cut, name: "plate", color: [1, 0.5, 0] }], "plate");
 check("STEP text", step.startsWith("ISO-10303-21;") && step.includes("MANIFOLD_SOLID_BREP('plate'") && step.includes("CYLINDRICAL_SURFACE") && step.includes("COLOUR_RGB"));
+// a hole's wall is in the same solid as the rest (its upward faceuse is on the material side: grouping by it split them)
+check("STEP: a plate with a hole is one solid", (step.match(/MANIFOLD_SOLID_BREP/g) ?? []).length === 1, step.match(/MANIFOLD_SOLID_BREP[^;]*/g)?.join(" | "));
+const hollow = W.SmApiBooleanDifference(W.SmApiCreateBox([0, 0, 0], 20, 20, 20), W.SmApiCreateBox([5, 5, 5], 10, 10, 10));
+const hstep = W.stepWrite([{ brep: hollow, name: "hollow" }], "hollow");
+check("STEP: a hollow is a solid with a void", /BREP_WITH_VOIDS\('hollow',#\d+,\(#\d+\)\)/.test(hstep) && /ORIENTED_CLOSED_SHELL\('',\*,#\d+,\.F\.\)/.test(hstep) && !hstep.includes("MANIFOLD_SOLID_BREP"));
+
+// a solid from faces: a 10 mm cube, each face a flat NURBS patch with four lines round it
+const line = (a, b) => ({ p: 1, U: [0, 0, 1, 1], P: [...a, ...b], W: null });
+const at = (o, du, dv, i, j) => o.map((x, k) => 10 * (x + i * du[k] + j * dv[k]));
+const quad = (o, du, dv) => {
+  const c = [at(o, du, dv, 0, 0), at(o, du, dv, 1, 0), at(o, du, dv, 1, 1), at(o, du, dv, 0, 1)];
+  return { surface: { p: 1, q: 1, U: [0, 0, 1, 1], V: [0, 0, 1, 1], nu: 2, nv: 2, P: [...c[0], ...c[3], ...c[1], ...c[2]], W: null }, reversed: false,
+    loops: [{ curves: [0, 1, 2, 3].map((k) => line(c[k], c[(k + 1) % 4])), senses: [1, 1, 1, 1] }] };
+};
+const cubeFaces = [quad([0, 0, 0], [0, 1, 0], [1, 0, 0]), quad([0, 0, 1], [1, 0, 0], [0, 1, 0]), quad([0, 0, 0], [1, 0, 0], [0, 0, 1]),
+  quad([0, 1, 0], [0, 0, 1], [1, 0, 0]), quad([0, 0, 0], [0, 0, 1], [0, 1, 0]), quad([1, 0, 0], [0, 1, 0], [0, 0, 1])];
+const fromFaces = W.brepFromFaces(cubeFaces, 1e-6);
+check("brepFromFaces: a closed solid", fromFaces.solid && fromFaces.faces === 6 && fromFaces.failed.length === 0 && !!W.SmApiBrepIsManifoldSolid(fromFaces.brep));
+check("brepFromFaces: its volume", near(vol(fromFaces.brep), 1000, 1e-6), String(vol(fromFaces.brep)));
+check("brepFromFaces: faces stitched (12 edges)", W.brepTopology(fromFaces.brep).edges.length === 12);
+try { W.brepFromFaces([{ ...cubeFaces[0], surface: { ...cubeFaces[0].surface, U: [-1, 0, 1, 2] } }], 1e-6); check("brepFromFaces: unclamped knots refused", false); }
+catch (e) { check("brepFromFaces: unclamped knots refused, saying so", /aren't clamped/.test(e.message), e.message); }
+W.destroy(hollow); W.destroy(fromFaces.brep);
+
+// a path sweep: a Ø4 circle along two lines meeting square (mitred), and a line, a round bend and a line
+const ring = W.SmApiCreateCircle_Circle([0, 0, 0], 2);
+const seg = (a, b) => W.SmApiCreateLineSegment(a, b);
+const ell = [seg([0, 0, 0], [0, 0, 20]), seg([0, 0, 20], [20, 0, 20])];
+const swept = W.sweepPath([ring], ell, 1e-5, 0.5);
+check("sweepPath: a solid round a mitred corner", !!W.SmApiBrepIsManifoldSolid(swept) && W.SmApiBrepMaterialCensus(swept).rlSolidCount === 1);
+check("sweepPath: its volume (area × path)", near(vol(swept), 4 * Math.PI * 40, 1e-6), String(vol(swept)));
+check("sweepPath: the profile stays where it was drawn", near(W.SmApiBrepBoundingBox(swept, 1).rMin[0], -2, 1e-6) && near(W.SmApiBrepBoundingBox(swept, 1).rMax[2], 22, 1e-6));
+const back2 = [seg([20, 0, 20], [0, 0, 20]), seg([0, 0, 20], [0, 0, 0])];   // given the other way round
+const swept2 = W.sweepPath([ring], back2, 1e-5, 0.5);
+check("sweepPath: a path given the other way round runs from the profile", near(vol(swept2), 4 * Math.PI * 40, 1e-6), String(vol(swept2)));
+for (const x of [ring, ...ell, ...back2, swept, swept2]) W.destroy(x);
 
 // errors name the call and the status
 try { W.SmApiCreateBox([0, 0, 0], -1, 1, 1); check("a bad call throws", false); }

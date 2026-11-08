@@ -30,12 +30,14 @@ inline SmVector3d perp(const SmVector3d& d) {
 }
 // ---------------------------------------------------------------- faces: which way is out
 /** +1 when the surface's normal points out of the material, -1 when it points in (SmPyLib's rule: the upward
- *  faceuse — the side the surface normal points to — belongs to the infinite region) */
+ *  faceuse — the side the surface normal points to — belongs to the infinite region, or to a void) */
 inline double face_sense(const SmFace* f) {
     const SmBrep* b = f->GetBrep();
     const SmFaceuse* up = f->GetUpwardFaceuse();
-    if (b && up && up->GetShell() && b->GetInfiniteRegion() != up->GetShell()->GetRegion()) return -1.0;
-    return 1.0;
+    if (!b || !up || !up->GetShell()) return 1.0;
+    // the surface's normal points outward when it points into the infinite region — or into a void inside the solid
+    const SmRegion* r = up->GetShell()->GetRegion();
+    return r == b->GetInfiniteRegion() || (r && r->IsVoid() == TRUE) ? 1.0 : -1.0;
 }
 /** the outward normal at the face point nearest p */
 inline SmVector3d face_normal_near(const SmFace* f, const SmVector3d& p, SmVector3d* where = nullptr) {

@@ -28,13 +28,24 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   copied side by side into one with no intersecting (SM_API's list union drops pieces of disjoint ones); and
   **`brepBox`**, a bounding box as quick as SMLib's own but tight on turned round faces, whose control nets bulge up
   to two fifths of a radius outside them (SMLib's tight box is ~800× slower on a plate with 48 holes).
+- **Sweeps along a path of several curves** (`sweepPath`) — SMLib's curve sweep takes one curve, and moves the
+  profile's first point onto it; its planar-path sweep re-places the profile by its own rule. `sweepPath` keeps the
+  profile where it was drawn: along a line it's pushed (a prism), round an arc turned about the arc's axis (planes,
+  cylinders and tori), along anything else carried by SMLib's curve sweep (a profile centred on the path). Smooth
+  joins carry on; corners are mitred, as OpenCascade's "right corner" pipe — each pipe run on to the plane halfway
+  between the two directions. Volumes and positions match OpenCascade's on straight, bent, cornered and closed paths,
+  centred or not.
+- **Shapes from elsewhere** (`brepFromFaces`) — faces given as NURBS surfaces with loops of NURBS curves, made one
+  by one and stitched into a solid: how DadCAD brings STEP files (read in TypeScript) and OpenCascade's shapes into
+  SMLib. Knots must be clamped; a solid with hollows is built whole and the hollows taken away.
 - **A STEP (AP214) writer** — SMLib has none. Planes, cylinders, cones, spheres, tori, lines, circles and ellipses
   are written as such, everything else as (rational) B-splines from SMLib's own control nets, with names and
-  colours. Checked by reading the files back into OpenCascade (volumes agree, shapes valid).
+  colours; a solid with hollows as one solid with voids. Checked by reading the files back into OpenCascade (volumes
+  agree, shapes valid).
 
 | | |
 |---|---|
-| WebAssembly | 7.0 MB (2.4 MB gzip, 2.0 MB brotli) |
+| WebAssembly | 7.1 MB (2.4 MB gzip, 2.0 MB brotli) |
 | Start-up | ~40 ms to instantiate in Node 22 |
 | Upstream's SM_API test suite | **127 / 127 pass** with WASMLib's changes, as without — in WebAssembly (57 s; 78 s without them) and natively (53 s, g++ -O2; 73 s without) |
 | Build | Emscripten 7.0: `-O3 -flto -msimd128 -fwasm-exceptions`, 16 MB stack, growable heap to 4 GB |
@@ -111,10 +122,11 @@ slower on shells (3.2×), one boolean with many tools (2.7×) and a bolt's threa
 
 ## What SMLib doesn't do
 
-No STEP or IGES import, no conversion of a mesh into a Brep, no draft of existing faces, no two-distance chamfer, no
-imprinting of curves onto a face (only projecting through a whole body), no twisted extrusion (WASMLib's screw sweep
-is that). DadCAD's backend builds the last three from
-what SMLib does have; see its `src/kernel/geom/wasmlib`.
+No STEP or IGES import (DadCAD reads STEP itself and builds the faces with `brepFromFaces`), no conversion of a mesh
+into a Brep, no draft of existing faces, no two-distance chamfer, no imprinting of curves onto a face (only projecting
+through a whole body), no twisted extrusion (WASMLib's screw sweep is that), no sweep along several curves
+(`sweepPath` is that). DadCAD's backend builds the draft, the chamfer and the imprint from what SMLib does have; see
+its `src/kernel/geom/wasmlib`.
 
 ## Licence
 
