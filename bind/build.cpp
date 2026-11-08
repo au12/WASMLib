@@ -745,8 +745,22 @@ val sweepPath(const val& profileV, const val& pathV, double tol, double cornerDe
         SmCurve* k = copy_curve(c, back);
         owned.push_back(k); path.push_back(k);
     }
-    // run it from the end the profile is at
-    if (len(sub(curve_end(path.back(), true), mid)) < len(sub(curve_end(path.front(), false), mid)) - tol) {
+    // run it from the end the profile is at: the end in the profile's plane, or failing that (both or neither in it)
+    // the end nearer the profile's middle
+    const SmVector3d S0 = curve_end(path.front(), false), E0 = curve_end(path.back(), true);
+    bool fromEnd = len(sub(E0, mid)) < len(sub(S0, mid)) - tol;
+    {
+        SmTArray<SmCurve*> pc;
+        for (auto* c : prof) pc.Add(c);
+        SmVector3d pn;
+        if (SmCurve::ComputeCrvsNormal(pc, pn) == SM_SUCCESS && len(pn) > 0) {
+            pn = unit(pn);
+            const SmVector3d p0 = curve_end(prof.front(), false);
+            const double ds = std::fabs(dot(sub(S0, p0), pn)), de = std::fabs(dot(sub(E0, p0), pn));
+            if (std::fabs(ds - de) > 10 * tol) fromEnd = de < ds;
+        }
+    }
+    if (fromEnd) {
         std::reverse(path.begin(), path.end());
         for (auto& k : path) {
             SmExtent1d now;
