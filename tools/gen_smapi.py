@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the complete SM_API binding from upstream's headers.
 
-Every SMAPI_EXPORT function in upstream/source/SM_API/inc/SmApi*.h becomes one JavaScript function. The headers
+Every SMAPI_EXPORT function in smlib/source/SM_API/inc/SmApi*.h becomes one JavaScript function. The headers
 mark each parameter [in], [out], [in/out] or [opt] (an optional output); that decides how it crosses:
 
   inputs   -> JS arguments, in order (vectors as [x, y, z], arrays as JS arrays, kernel objects as handles —
@@ -19,8 +19,8 @@ types that tell them apart (SmApiCreatePlane / SmApiCreatePlane_SmPlane). Writes
 import json, os, re, sys, glob, collections
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INC = os.path.join(ROOT, "upstream", "source", "SM_API", "inc")
-SMINC = os.path.join(ROOT, "upstream", "source", "SMLib", "inc")
+INC = os.path.join(ROOT, "smlib", "source", "SM_API", "inc")
+SMINC = os.path.join(ROOT, "smlib", "source", "SMLib", "inc")
 
 # functions left out, with the reason (kept in the manifest)
 SKIP = {

@@ -1,4 +1,4 @@
-# WASMLib: NVIDIA's SMLib B-rep kernel (from usd-brep, the `upstream` submodule) built for WebAssembly with
+# WASMLib: NVIDIA's SMLib B-rep kernel (from usd-brep 1.0.1, its source in smlib/) built for WebAssembly with
 # Emscripten — and natively with the same flags, as the reference the WebAssembly build is checked against.
 #
 #   emcmake cmake -B build-wasm -G Ninja -DCMAKE_BUILD_TYPE=Release && ninja -C build-wasm
@@ -8,7 +8,7 @@ project(WASMLib CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(UP ${CMAKE_SOURCE_DIR}/upstream)
+set(UP ${CMAKE_SOURCE_DIR}/smlib)
 
 # ---------------------------------------------------------------- flags
 # Upstream's release configuration: NDEBUG, NOMINMAX, C++17, RTTI and exceptions on; TBB off (SM_USE_TBB is never
@@ -34,7 +34,7 @@ file(GLOB SMLIB_SRC ${UP}/source/SMLib/src/*.cpp)
 file(GLOB SMAPI_SRC ${UP}/source/SM_API/src/*.cpp)
 
 # ---------------------------------------------------------------- patches (speed only — see patches/README.md)
-# The upstream submodule stays untouched: each file a patch touches is copied into the build tree, the patches are
+# smlib/ stays as upstream shipped it: each file a patch touches is copied into the build tree, the patches are
 # applied there in order, and those copies are compiled in place of upstream's. A copy is rewritten only when its
 # patched text changes, so editing one patch rebuilds only the files it touches.
 file(GLOB SM_PATCHES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/patches/*.patch)
@@ -87,7 +87,7 @@ target_compile_definitions(smapi PRIVATE SM_API_EXPORTS)
 target_link_libraries(smapi PUBLIC smlib)
 
 # ---------------------------------------------------------------- upstream's own SM_API test suite
-# (run from upstream/tests/SM_API_test, as its SM_API_test.sh does, so its relative TestFiles paths resolve)
+# (run from smlib/tests/SM_API_test, as its SM_API_test.sh does, so its relative paths resolve)
 file(GLOB SMAPI_TEST_SRC ${UP}/tests/SM_API_test/src/*.cpp)
 add_executable(sm_api_test ${SMAPI_TEST_SRC} ${UP}/Examples/SM_API/boolean_bounds.cpp ${UP}/Examples/SMLib/step_derivatives.cpp)
 target_include_directories(sm_api_test PRIVATE ${UP}/tests/SM_API_test/inc ${UP}/Examples/SM_API ${UP}/Examples/SMLib)
