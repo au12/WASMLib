@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmLoopuse.cpp
@@ -44,6 +46,8 @@
 #include <SmCrvOnSurf.h>
 #include <SmAssertArray.h>
 #include <SmPseudoBox.h>
+
+#include <WlTools.h>   // WASMLib: wl_KeepFirstOfEach
 
 //    // For debugging only - a set of pointers that can be assigned and inspected through the watch window
 //    #ifdef SM_DEBUG_CODE
@@ -258,7 +262,7 @@ void SmLoopuse::GetEdges   // not GetEdgeuses
   do {
        // for NULL terminated lists
        if ( pEU == NULL )
-         { return; }
+         { wl_KeepFirstOfEach(rEdges) ; return; }
 
        // locals
        SmEdge *pE = pEU->GetEdge() ;
@@ -266,7 +270,7 @@ void SmLoopuse::GetEdges   // not GetEdgeuses
        // build output
        if(   pOptAttributeId == NULL
           || pE->FindAttribute(*pOptAttributeId) != NULL)  
-         { rEdges.AddUnique(pE) ; }
+         { rEdges.Add(pE) ; } // WASMLib: was AddUnique
 
        // next iter
        pEU = pEU->m_pCCW;
@@ -274,6 +278,9 @@ void SmLoopuse::GetEdges   // not GetEdgeuses
 
        // quit when we get back to the Starting Edgeuse
      } while (pEU != pStartEU);
+
+  // WASMLib: the repeats AddUnique kept out, removed once (see wl_KeepFirstOfEach)
+  wl_KeepFirstOfEach(rEdges) ;
 
 } // end SmLoopuse::GetEdges
 
@@ -443,7 +450,7 @@ void SmLoopuse::GetVertices
   do {
        // for NULL terminated lists
        if ( pEU == NULL )
-         { return; }
+         { wl_KeepFirstOfEach(rVertices) ; return; }
 
        // locals 
        SmVertexuse * pVU = pEU->GetVertexuse();
@@ -452,13 +459,16 @@ void SmLoopuse::GetVertices
        // build output
        if(   pOptAttributeId == NULL
          || pV->FindAttribute(*pOptAttributeId) != NULL)  
-        { rVertices.AddUnique(pV); }
+        { rVertices.Add(pV); } // WASMLib: was AddUnique
 
        // next iter
        pEU = pEU->m_pCCW; SM_ASSERT(pEU != NULL);
 
        // quit when we get back to the Starting Edgeuse
      } while (pEU != pStartEU);
+
+  // WASMLib: the repeats AddUnique kept out, removed once (see wl_KeepFirstOfEach)
+  wl_KeepFirstOfEach(rVertices) ;
 
 } // end SmLoopuse::GetVertices
 

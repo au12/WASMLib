@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmCurveClass.cpp
@@ -14854,6 +14856,24 @@ SmStatus SmCurveClassification::IntersectVertices
   // temporarily clear surface->Owner pointer to prevent building trimSrfCache for crSurface
   SmTemporaryChangeValue<SmObject *> sChange(pSurface->m_pOwner, NULL) ;
 
+  // WASMLib: when the classification curve is a line, its box, once: a vertex further than its tolerance outside it
+  //   (by twice that, to be safe) can't drop onto the line within tolerance, which SmLine::DropPointFast would
+  //   find out by projecting it; such vertices are skipped below, with the same result.
+  const SmLine * pWlLine = SM_CAST_NONNULL_PTR(SmLine, pCurve) ;
+  SmExtent3d     sWlLineBox ;
+  if(pWlLine)
+    {
+      SmPoint3d sWlStart, sWlEnd ;
+      if(   pWlLine->EvaluatePoint(m_vInterval.GetMin(), sWlStart) != SM_SUCCESS
+         || pWlLine->EvaluatePoint(m_vInterval.GetMax(), sWlEnd)   != SM_SUCCESS
+         || sWlStart.DistanceBetween(sWlEnd) < 1.0e-9)
+        { pWlLine = NULL ; }
+      else
+        { sWlLineBox = SmExtent3d(sWlStart) ;
+          sWlLineBox.AddPoint3d(sWlEnd) ;
+        }
+    }
+
   // values for SSS XSectPoint tightening
   SmScaledZero sLooseCrvDropSize = 1.0e-7 ;     // vtxs dropping to an intersection ClassCrv within range:[LargeScaledZero,XSectTol3d] are checked for SSS_XSect refinement.
                                                 //  could try making this smaller to catch more cases at a cost of more computation.
@@ -14899,6 +14919,10 @@ SmStatus SmCurveClassification::IntersectVertices
           sBigGapXSectTol3d = ((SmXSectTol3d)dMaxGap3d > sXSectTol3d) ? (SmXSectTol3d)dMaxGap3d : sXSectTol3d ;
 
         } // end bHasBigGaps - allow for gaps larger than tol in upcoming GlobalCurveSolve
+
+      // WASMLib: a vertex nowhere near the classification line (see above)
+      if(pWlLine && sWlLineBox.AreDisjoint(SmExtent3d(pVertex->GetPoint()), 2.0 * sXSectTol3d))
+        { continue ; }
 
       // find pCurve/Vertex->Point3d XSects
       SER(pCurve->GlobalPointSolve
@@ -15469,6 +15493,24 @@ SmBoolean bDebugMe = FALSE;
   // temporarily clear surface->Owner pointer to prevent building trimSrfCache for crSurface
   SmTemporaryChangeValue<SmObject *> sChange(pSurface->m_pOwner, NULL) ;
 
+  // WASMLib: when the classification curve is a line, its end points once, for the box test SmLine::IntersectWithLine
+  //   makes against each edge that is a line (below); that test, made before the call, skips the call for every edge
+  //   the line is nowhere near, with the same result.
+  const SmLine * pWlLine = SM_CAST_NONNULL_PTR(SmLine, pCurve) ;
+  SmExtent3d     sWlLineBox, sWlLineBoxGrown ;
+  double         dWlGrownBy = -1.0 ;   // the tolerance sWlLineBoxGrown was grown by (it's the same for most edges)
+  if(pWlLine)
+    {
+      SmPoint3d sWlStart, sWlEnd ;
+      if(   pWlLine->EvaluatePoint(m_vInterval.GetMin(), sWlStart) != SM_SUCCESS
+         || pWlLine->EvaluatePoint(m_vInterval.GetMax(), sWlEnd)   != SM_SUCCESS)
+        { pWlLine = NULL ; }
+      else
+        { sWlLineBox = SmExtent3d(sWlStart) ;
+          sWlLineBox.AddPoint3d(sWlEnd) ;
+        }
+    }
+
   // for every given edge
   for(ii=0;ii<lNumEdges;ii++)
     {
@@ -15850,6 +15892,26 @@ SmBoolean bDebugMe = FALSE;
       else // Curve and edge are different branch
       {
           ULONG jj, kk ;
+          // WASMLib: line against line - the box test SmLine::IntersectWithLine starts with, without the call
+          if(pWlLine)
+            {
+              const SmLine * pWlEdgeLine = SM_CAST_NONNULL_PTR(SmLine, pEdgeCurve) ;
+              SmPoint3d sWlStart2, sWlEnd2 ;
+              if(   pWlEdgeLine
+                 && pWlEdgeLine->EvaluatePoint(sEdgeIvl.GetMin(), sWlStart2) == SM_SUCCESS
+                 && pWlEdgeLine->EvaluatePoint(sEdgeIvl.GetMax(), sWlEnd2)   == SM_SUCCESS)
+                {
+                  if(dWlGrownBy != sXSectTol3d)
+                    { sWlLineBoxGrown = sWlLineBox ;
+                      sWlLineBoxGrown.ExpandAbsolute(sXSectTol3d) ;
+                      dWlGrownBy = sXSectTol3d ;
+                    }
+                  SmExtent3d sWlBox2(sWlStart2) ;
+                  sWlBox2.AddPoint3d(sWlEnd2) ;
+                  if(sWlLineBoxGrown.AreDisjoint(sWlBox2))
+                    { continue ; }
+                }
+            }
           SER( pCurve->GlobalCurveIntersect( m_vInterval,       // in : thisCurve's interval for intersection
                                                *pEdgeCurve,        // in : target OtherCurve
                                                 sEdgeIvl,          // in : OtherCurve's interval for intersection

@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /*******************************************************************//**
 * FILE NAME --- SmBrep.cpp
@@ -54,6 +56,8 @@
 #include <SmMatrix.h>
 
 #include <unordered_set>
+#include <utility>
+#include <vector>
 #include <cmath>
 
 #if defined(SM_GFX_OUTPUT_CODE)
@@ -5720,6 +5724,122 @@ SM_EXPORT SmStatus SmBrep::RotateSection
 } // end SmBrep::RotateSection
 
 /*******************************************************************//**
+WASMLib: are a few vertices of one shell still joined to each other, through the connections ShellTraversal follows
+  (an edgeuse to its mate, a vertex to its other vertexuses, a face to every vertex of its loops)?
+
+  Searches out from all of them at once, one vertex each in turn, and stops as soon as the searches have all met
+  (joined) or one has run out (its vertices are a piece on their own, and the smallest piece). ShellTraversal walks
+  the whole shell to answer the same question, so deleting the many faces and edges a boolean throws away took time
+  in proportion to the square of the shell's size.
+
+RETURN: 0 = all joined
+        1 = not all joined; *plSmallest = index into ppTargets of a vertex in the piece that ran out,
+            *pbOthersHaveFace = TRUE when each of the other searches had reached a face
+***********************************************************************/
+static int wl_ShellPieces(SmShell          * pShell,
+                          SmVertex * const * ppTargets,
+                          ULONG              lTargets,
+                          ULONG            * plSmallest,
+                          SmBoolean        * pbOthersHaveFace)
+{
+  std::unordered_map<SmVertex*, int> sOwner;   // vertex -> the search that reached it first
+  std::unordered_set<SmFace*>        sFaces;   // faces whose loops have been walked
+  std::vector<int>                   sParent;  // searches that have met share a root
+  std::vector<std::vector<SmVertex*>> sTodo;   // per root: vertices reached, waiting to be looked from
+  std::vector<size_t>                sNext;
+  std::vector<char>                  sHasFace;
+  std::vector<int>                   sSearchOf(lTargets);
+  int lRoots = 0;
+
+  auto Find = [&](int i) { while (sParent[i] != i) { sParent[i] = sParent[sParent[i]]; i = sParent[i]; } return i; };
+  auto Join = [&](int a, int b)
+    {
+      a = Find(a); b = Find(b);
+      if (a == b) { return; }
+      if (sTodo[a].size() - sNext[a] < sTodo[b].size() - sNext[b]) { std::swap(a, b); }
+      sTodo[a].insert(sTodo[a].end(), sTodo[b].begin() + sNext[b], sTodo[b].end());
+      std::vector<SmVertex*>().swap(sTodo[b]); sNext[b] = 0;
+      sHasFace[a] = sHasFace[a] || sHasFace[b];
+      sParent[b] = a;
+      lRoots--;
+    };
+  auto Reach = [&](int s, SmVertex *pW)
+    {
+      auto it = sOwner.find(pW);
+      if (it == sOwner.end()) { s = Find(s); sOwner.emplace(pW, s); sTodo[s].push_back(pW); }
+      else                    { Join(s, it->second); }
+    };
+
+  for (ULONG k = 0; k < lTargets; k++)
+    {
+      auto it = sOwner.find(ppTargets[k]);
+      if (it != sOwner.end()) { sSearchOf[k] = it->second; continue; }
+      const int s = (int)sParent.size();
+      sParent.push_back(s); sTodo.push_back({ppTargets[k]}); sNext.push_back(0); sHasFace.push_back(0);
+      sOwner.emplace(ppTargets[k], s);
+      sSearchOf[k] = s;
+      lRoots++;
+    }
+  if (lRoots <= 1) { return 0; }
+
+  SmVertexuse *sVUData[32], *sLVUData[32];
+  SmTArray<SmVertexuse*> sVertexuses(32, sVUData), sLoopVertexuses(32, sLVUData);
+  SmLoopuse *sLUData[8];
+  SmTArray<SmLoopuse*> sLoopuses(8, sLUData);
+  for (;;)
+    {
+      for (int s = 0; s < (int)sParent.size(); s++)
+        {
+          if (sParent[s] != s) { continue; }
+          if (sNext[s] == sTodo[s].size())
+            {
+              // this search ran out without meeting the others: its piece is apart from theirs
+              *plSmallest = 0;
+              for (ULONG k = 0; k < lTargets; k++) { if (Find(sSearchOf[k]) == s) { *plSmallest = k; break; } }
+              *pbOthersHaveFace = TRUE;
+              for (int t = 0; t < (int)sParent.size(); t++)
+                { if (t != s && sParent[t] == t && !sHasFace[t]) { *pbOthersHaveFace = FALSE; } }
+              return 1;
+            }
+          SmVertex *pV = sTodo[s][sNext[s]++];
+          pV->GetVertexuses(sVertexuses);
+          for (ULONG i = 0; i < sVertexuses.GetSize(); i++)
+            {
+              SmVertexuse *pVU = sVertexuses[i];
+              if (pVU->GetShell() != pShell) { continue; }
+              SmFaceuse *pFU = NULL;
+              if (pVU->IsEdgeVertexuse())
+                {
+                  SmEdgeuse *pEU   = pVU->GetEdgeuse();
+                  SmEdgeuse *pMate = pEU ? pEU->GetMate() : NULL;
+                  if (pMate && pMate->GetShell() == pShell && pMate->GetVertexuse())
+                    { Reach(s, pMate->GetVertexuse()->GetVertex()); }
+                  if (pEU && pEU->IsLoopEdgeuse()) { pFU = pVU->GetFaceuse(); }
+                }
+              else if (pVU->IsLoopVertexuse()) { pFU = pVU->GetFaceuse(); }
+              if (pFU)
+                {
+                  sHasFace[Find(s)] = 1;
+                  if (sFaces.insert(pFU->GetFace()).second)
+                    {
+                      pFU->GetLoopuses(sLoopuses);
+                      for (ULONG j = 0; j < sLoopuses.GetSize(); j++)
+                        {
+                          sLoopuses[j]->GetVertexuses(sLoopVertexuses);
+                          for (ULONG l = 0; l < sLoopVertexuses.GetSize(); l++)
+                            {
+                              if (sLoopVertexuses[l]->GetShell() == pShell) { Reach(s, sLoopVertexuses[l]->GetVertex()); }
+                            }
+                        }
+                    }
+                }
+              if (lRoots == 1) { return 0; }
+            }
+        }
+    }
+}
+
+/*******************************************************************//**
 PURPOSE: Delete an edge -- manifold, lamina, or wire -- and its
          associated geometry from a Brep.
 
@@ -6932,12 +7052,30 @@ SmBoolean bDebugMe3=FALSE;
       // side-effect: increment eMarkType mark value
       SmTopologyTraverser sTopoTraverser;
       SmNewMarkAndLock sMarkLock(pV1->GetContext(), SM_MT_ALLMARKS) ;  // increments newly locked mark
-      SER(sTopoTraverser.ShellTraversal(pV1,         // in : target vertex
-                                        pShell,      // in : target shell
-                                        &sEdgeuses1, // out: optional list of edges in shell (not marked)
-                                        &sFaceuses1, // out: optional list of faces in shell (get marked)
-                                        sMarkLock)); // in : specify mark for target objects (incremented)
-      SmBoolean bSplitShell = pV2->IsMarked(sMarkLock.GetMarkType()) ? FALSE : TRUE ;
+      // WASMLib: a search out from both ends at once answers whether they're still joined, and when they aren't, which
+      // end's piece is the smaller: that one becomes pV2's, the piece moved to a new shell, and the bigger one is
+      // never walked. ShellTraversal from pV1 is still used when the shell's first edgeuse is the deleted one, or the
+      // bigger piece may have no face (both need pV1's piece listed in sEdgeuses1 / sFaceuses1).
+      SmBoolean bSplitShell = FALSE ;
+      SmBoolean bWlBigHasFace = FALSE ;
+      ULONG     lWlSmallest   = 0 ;
+      SmVertex *sWlEnds[2]    = { pV1, pV2 } ;
+      const int lWlPieces     = (pShell->m_pList == pEU || pShell->m_pList == pEUMate)
+                                ? -1 : wl_ShellPieces(pShell, sWlEnds, 2, &lWlSmallest, &bWlBigHasFace) ;
+      if (lWlPieces == 1 && bWlBigHasFace)
+        {
+          if (lWlSmallest == 0) { std::swap(pV1, pV2) ; }
+          bSplitShell = TRUE ;
+        }
+      else if (lWlPieces != 0)
+        {
+          SER(sTopoTraverser.ShellTraversal(pV1,         // in : target vertex
+                                            pShell,      // in : target shell
+                                            &sEdgeuses1, // out: optional list of edges in shell (not marked)
+                                            &sFaceuses1, // out: optional list of faces in shell (get marked)
+                                            sMarkLock)); // in : specify mark for target objects (incremented)
+          bSplitShell = pV2->IsMarked(sMarkLock.GetMarkType()) ? FALSE : TRUE ;
+        }
       SmShell *pNewShell    = NULL ;
 
       // when pV2 is not in the same shell as pV1
@@ -7020,7 +7158,7 @@ SmBoolean bDebugMe2=FALSE;
     // or is a wireshell after a shell split, ensure it has a valid first edge
     if(   pShell->m_pList == pEU
        || pShell->m_pList == pEUMate
-       || (sFaceuses1.GetSize() == 0 && bSplitShell))
+       || (sFaceuses1.GetSize() == 0 && bSplitShell && !(lWlPieces == 1 && bWlBigHasFace))) // WASMLib: unless the search saw pV1's piece reach a face
       {
         SM_ASSERT(sFaceuses1.GetSize() == 0) ;
         if (sEdgeuses1.GetSize() > 0)
@@ -7399,7 +7537,25 @@ SmStatus SmBrep::DeleteFace
           //       Leaving the number of vertices that will need to be put in one or more new shells.
           //     If that number is greater than 0 then one or more new shells are needed.
           SmBoolean bNeedTraversal = TRUE ;
-          for( ii = 0; ii < sVertices.GetSize(); ii++)
+
+          // WASMLib: a search out from all the face's remaining vertices at once usually shows them still joined
+          // after a step or two, and then no vertex needs a new shell; ShellTraversal below walks the whole shell to
+          // find that out. When they aren't all joined, the count below is made as before.
+          {
+            SmTArray<SmVertex*> sWlLeft;
+            for( ii = 0; ii < sVertices.GetSize(); ii++)
+              { if(!sVertices[ii]->IsShellVertex()) { sWlLeft.Add(sVertices[ii]) ; } }
+            ULONG     lWlSmallest   = 0 ;
+            SmBoolean bWlOthersFace = FALSE ;
+            if(   sWlLeft.GetSize() == 0
+               || wl_ShellPieces(pShell, &sWlLeft[0], sWlLeft.GetSize(), &lWlSmallest, &bWlOthersFace) == 0)
+              {
+                bNeedTraversal = FALSE ;
+                lVertexCount   = 0 ;
+              }
+          }
+
+          for( ii = 0; ii < sVertices.GetSize() && lVertexCount > 0; ii++)
             {
               SmVertex *pV = sVertices[ii];
 
@@ -28103,6 +28259,52 @@ SmStatus SmBrep::TestClosureSplitRegion
 }  // end TestClosureSplitRegion( SmEdge verison )
 
 /*******************************************************************//**
+WASMLib: does a faceuse reach its mate through the faceuses next to it (each edgeuse's radial's faceuse), the walk
+  ClosureTraversal makes? Searches out from both at once, a faceuse each in turn, and stops when the two searches
+  meet (TRUE: the set is open) or either runs out (FALSE: it may be closed — ask ClosureTraversal). ClosureTraversal
+  walks out from the faceuse alone, which while a boolean builds its result faces one by one took most of the open
+  shell each time.
+***********************************************************************/
+static SmBoolean wl_FaceuseReachesMate(SmFaceuse *pStart)
+{
+  SmFaceuse *pMate = pStart->GetMate();
+  if(pMate == NULL || pMate == pStart) { return pMate == pStart ; }
+
+  std::unordered_map<SmFaceuse*, int> sSide;          // faceuse -> 0 reached from pStart, 1 from pMate
+  std::vector<SmFaceuse*> sTodo[2] = { {pStart}, {pMate} };
+  size_t                  sNext[2] = { 0, 0 };
+  sSide.emplace(pStart, 0);
+  sSide.emplace(pMate, 1);
+
+  SmLoopuse *sLUData[8];
+  SmTArray<SmLoopuse*> sLoopuses(8, sLUData);
+  SmEdgeuse *sEUData[32];
+  SmTArray<SmEdgeuse*> sEdgeuses(32, sEUData);
+  for(;;)
+    {
+      for(int s = 0; s < 2; s++)
+        {
+          if(sNext[s] == sTodo[s].size()) { return FALSE ; }
+          SmFaceuse *pFU = sTodo[s][sNext[s]++];
+          pFU->GetLoopuses(sLoopuses);
+          for(ULONG j = 0; j < sLoopuses.GetSize(); j++)
+            {
+              sLoopuses[j]->GetEdgeuses(sEdgeuses);
+              for(ULONG i = 0; i < sEdgeuses.GetSize(); i++)
+                {
+                  SmEdgeuse *pRadial = sEdgeuses[i]->GetRadial();
+                  SmFaceuse *pNext   = pRadial ? pRadial->GetFaceuse() : NULL;
+                  if(pNext == NULL) { continue ; }
+                  auto it = sSide.find(pNext);
+                  if(it == sSide.end())  { sSide.emplace(pNext, s); sTodo[s].push_back(pNext); }
+                  else if(it->second != s) { return TRUE ; }
+                }
+            }
+        }
+    }
+}
+
+/*******************************************************************//**
 PURPOSE: This method tests for closure relative to a faceuse and
     splits the region if closure is found, creating and returning
     a new shell and a new region.
@@ -28134,6 +28336,11 @@ SmStatus SmBrep::TestClosureSplitRegion
 
   // no work - faces with lamina edges can't split Regions.
   if(pFUStart->GetFace()->HasLaminaEdge())
+    { return SM_SUCCESS ; }
+
+  // WASMLib: no work - pFUStart reaches its mate, so its faceuses aren't a closed set (found without walking the
+  // whole shell; ClosureTraversal below still decides when they may be closed)
+  if(wl_FaceuseReachesMate(pFUStart))
     { return SM_SUCCESS ; }
 
   // lock and increment an unused mark

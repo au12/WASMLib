@@ -7,12 +7,14 @@ open-sourced (Apache-2.0) in usd-brep: booleans, fillets and chamfers, shelling 
 intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` source (from usd-brep 1.0.1, in
 [`smlib/`](smlib/README.md)), builds it for the browser, workers and Node, and adds what a JavaScript caller needs:
 
-- **A faster SMLib.** WASMLib's changes to SMLib are commits in this repo, each listed in
-  [`smlib/README.md`](smlib/README.md): surface derivatives summed the textbook way, booleans that skip face pairs
-  (and coplanar edges) that can't meet, volumes that integrate the volume rather than every mass property, and point
-  tests on flat faces that skip loops the point is nowhere near. The same answers (volumes within the accuracy asked
-  for); in DadCAD engraved text builds 2.1× faster, a knurled knob 1.7–1.9×, a plate of 48 holes 1.6×, a filleted
-  box 1.4×.
+- **A faster SMLib.** WASMLib's changes to SMLib are commits in this repo, each listed with its measurement in
+  [`smlib/README.md`](smlib/README.md): surface derivatives summed the textbook way (and, for degrees 1–3, in code
+  written for the degree), booleans that skip face pairs, coplanar edges, edges and vertices that can't meet, deleting
+  faces and closing regions without walking the whole shell each time, loop lists gathered in one pass, volumes that
+  integrate the volume rather than every mass property, and point tests on flat faces that skip loops the point is
+  nowhere near. The same answers (volumes within the accuracy asked for). In WebAssembly, against the unchanged
+  SMLib, a knurl's 3 400-facet join to its knob is 3.6× quicker on top of an earlier 3×, a letter cut from a plate
+  1.3× on top of 2.1×, a shell 1.2× on top of 1.3×.
 
 - **All of SM_API, one to one** — 176 functions, generated from upstream's headers (`tools/gen_smapi.py`), with
   TypeScript declarations carrying upstream's parameter notes.

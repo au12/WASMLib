@@ -1828,6 +1828,161 @@ NL_NOINLINE NL_VOID N_ComputeDerivativeMatrix
 //     } // end using W
 } // end N_ComputeDerivativeMatrix
 
+/* WASMLib: N_ComputeBasisFunctions, the derivatives N_ComputeDerivatives gives and their scaling in N_SrfDerivs, for
+   one parameter direction of degree P known when compiled: the same steps in the same order, so the same values to
+   the last bit, in arrays the size of the degree instead of the largest degree allowed. */
+template <int P>
+static NL_VOID wl_BasisDerivs(NL_PARAMETER u, const NL_REAL* U, NL_INDEX ku, NL_INDEX mder, NL_DERIVATIVES& D)
+{
+    NL_REAL ndu[P + 1][P + 1];
+    NL_REAL left[P + 1], right[P + 1];
+    ndu[0][0] = 1.0;
+    for (int j = 1; j <= P; j++)
+    {
+        left[j] = u - U[ku + 1 - j];
+        right[j] = U[ku + j] - u;
+        NL_REAL saved = 0.0;
+        for (int r = 0; r < j; r++)
+        {
+            ndu[j][r] = right[r + 1] + left[j - r];
+            NL_REAL temp = ndu[r][j - 1] / ndu[j][r];
+            ndu[r][j] = saved + right[r + 1] * temp;
+            saved = left[j - r] * temp;
+        }
+        ndu[j][j] = saved;
+    }
+    for (int j = 0; j <= P; j++)
+        D[0][j] = ndu[j][P];
+
+    NL_REAL a[2][P + 1];
+    for (int r = 0; r <= P; r++)
+    {
+        NL_REAL* a_s1 = a[0];
+        NL_REAL* a_s2 = a[1];
+        a_s1[0] = 1.0;
+        for (NL_INDEX k = 1; k <= mder; k++)
+        {
+            NL_REAL dd = 0.0;
+            NL_INDEX rk = r - k;
+            NL_INDEX pk = P - k;
+            if (r GE k)
+            {
+                a_s2[0] = a_s1[0] / ndu[pk + 1][rk];
+                dd = a_s2[0] * ndu[rk][pk];
+            }
+            NL_INDEX j1 = (rk GE - 1) ? 1 : -rk;
+            NL_INDEX j2 = ((r - 1) LE pk) ? (k - 1) : (P - r);
+            for (NL_INDEX j = j1; j <= j2; j++)
+            {
+                a_s2[j] = (a_s1[j] - a_s1[j - 1]) / ndu[pk + 1][rk + j];
+                dd += a_s2[j] * ndu[rk + j][pk];
+            }
+            if (r LE pk)
+            {
+                a_s2[k] = -a_s1[k - 1] / ndu[pk + 1][r];
+                dd += a_s2[k] * ndu[r][pk];
+            }
+            D[k][r] = dd;
+            NL_REAL* t = a_s1; a_s1 = a_s2; a_s2 = t;
+        }
+    }
+
+    for (NL_INDEX k = 1, r = P; k <= mder; k++)
+    {
+        for (int j = 0; j <= P; j++)
+            D[k][j] *= r;
+        r *= (P - k);
+    }
+}
+
+/* NL_TRUE when it filled D; NL_FALSE (nothing done) for other degrees */
+static NL_BOOLEAN wl_BasisDerivsFor(NL_DEGREE p, NL_PARAMETER u, const NL_REAL* U, NL_INDEX ku, NL_INDEX mder, NL_DERIVATIVES& D)
+{
+    switch (p)
+    {
+    case 1: wl_BasisDerivs<1>(u, U, ku, mder, D); return NL_TRUE;
+    case 2: wl_BasisDerivs<2>(u, U, ku, mder, D); return NL_TRUE;
+    case 3: wl_BasisDerivs<3>(u, U, ku, mder, D); return NL_TRUE;
+    default: return NL_FALSE;
+    }
+}
+/* WASMLib: the homogeneous sum in N_SrfDerivs for the degrees nearly every surface has (1 to 3 each way) and a 3D
+   control net, with the degrees and whether the net is rational known when compiled: the same sums in the same
+   order (so the same values to the last bit), without the loop and branch overhead around each multiply-add. */
+template <int P, int Q, bool NOW>
+static NL_VOID wl_SrfHomogeneousSum(NL_CPOINT** Pw, NL_INDEX l2, NL_INDEX l3, const NL_DERIVATIVES& DU,
+    const NL_DERIVATIVES& DV, NL_INDEX mu, NL_INDEX mv, NL_INDEX udr, NL_BOOLEAN upper,
+    NL_REAL (*A)[NL_MAXDER + 1][4])
+{
+    for (NL_INDEX l = 0; l <= mv; l++)
+    {
+        NL_REAL T[P + 1][4];
+        for (int i = 0; i <= P; i++)
+        {
+            const NL_CPOINT* row = &Pw[l2 + i][l3];
+            NL_REAL tx = 0.0, ty = 0.0, tz = 0.0, tw = 0.0;
+            for (int j = 0; j <= Q; j++)
+            {
+                const NL_REAL d = DV[l][j];
+                tx += d * row[j].x;
+                ty += d * row[j].y;
+                tz += d * row[j].z;
+                if (!NOW) tw += d * row[j].w;
+            }
+            T[i][0] = tx; T[i][1] = ty; T[i][2] = tz; T[i][3] = tw;
+        }
+        const NL_INDEX kmax = NL_MIN(mu, upper ? udr - l : udr);
+        for (NL_INDEX k = 0; k <= kmax; k++)
+        {
+            NL_REAL ax = 0.0, ay = 0.0, az = 0.0, aw = 0.0;
+            for (int i = 0; i <= P; i++)
+            {
+                const NL_REAL d = DU[k][i];
+                ax += d * T[i][0]; ay += d * T[i][1]; az += d * T[i][2]; aw += d * T[i][3];
+            }
+            A[k][l][0] = ax; A[k][l][1] = ay; A[k][l][2] = az; A[k][l][3] = aw;
+        }
+    }
+}
+
+template <int P, bool NOW>
+static NL_BOOLEAN wl_SrfHomogeneousSumQ(NL_DEGREE q, NL_CPOINT** Pw, NL_INDEX l2, NL_INDEX l3,
+    const NL_DERIVATIVES& DU, const NL_DERIVATIVES& DV, NL_INDEX mu, NL_INDEX mv, NL_INDEX udr, NL_BOOLEAN upper,
+    NL_REAL (*A)[NL_MAXDER + 1][4])
+{
+    switch (q)
+    {
+    case 1: wl_SrfHomogeneousSum<P, 1, NOW>(Pw, l2, l3, DU, DV, mu, mv, udr, upper, A); return NL_TRUE;
+    case 2: wl_SrfHomogeneousSum<P, 2, NOW>(Pw, l2, l3, DU, DV, mu, mv, udr, upper, A); return NL_TRUE;
+    case 3: wl_SrfHomogeneousSum<P, 3, NOW>(Pw, l2, l3, DU, DV, mu, mv, udr, upper, A); return NL_TRUE;
+    default: return NL_FALSE;
+    }
+}
+
+/* NL_TRUE when it made the sum; NL_FALSE (nothing done) for other degrees */
+static NL_BOOLEAN wl_SrfHomogeneousSumFor(NL_DEGREE p, NL_DEGREE q, NL_BOOLEAN noW, NL_CPOINT** Pw, NL_INDEX l2,
+    NL_INDEX l3, const NL_DERIVATIVES& DU, const NL_DERIVATIVES& DV, NL_INDEX mu, NL_INDEX mv, NL_INDEX udr,
+    NL_BOOLEAN upper, NL_REAL (*A)[NL_MAXDER + 1][4])
+{
+    if (noW)
+    {
+        switch (p)
+        {
+        case 1: return wl_SrfHomogeneousSumQ<1, true>(q, Pw, l2, l3, DU, DV, mu, mv, udr, upper, A);
+        case 2: return wl_SrfHomogeneousSumQ<2, true>(q, Pw, l2, l3, DU, DV, mu, mv, udr, upper, A);
+        case 3: return wl_SrfHomogeneousSumQ<3, true>(q, Pw, l2, l3, DU, DV, mu, mv, udr, upper, A);
+        default: return NL_FALSE;
+        }
+    }
+    switch (p)
+    {
+    case 1: return wl_SrfHomogeneousSumQ<1, false>(q, Pw, l2, l3, DU, DV, mu, mv, udr, upper, A);
+    case 2: return wl_SrfHomogeneousSumQ<2, false>(q, Pw, l2, l3, DU, DV, mu, mv, udr, upper, A);
+    case 3: return wl_SrfHomogeneousSumQ<3, false>(q, Pw, l2, l3, DU, DV, mu, mv, udr, upper, A);
+    default: return NL_FALSE;
+    }
+}
+
 /*******************************************************************//**
 
 
@@ -1957,6 +2112,9 @@ NL_FLAG N_SrfDerivs
         NL_BASISFUNCTIONS ndu;
         NL_DERIVATIVES DU, DV;
         const NL_INDEX mu = NL_MIN(p, udr), mv = NL_MIN(q, vdr);
+        /* WASMLib: degrees 1 to 3 through wl_BasisDerivs (the same steps, the degree known when compiled) */
+        if (NOT wl_BasisDerivsFor(p, u, sur->knu->U, usp, mu, DU))
+        {
         N_ComputeBasisFunctions(p, u, sur->knu->U, usp, ndu);
         for (NL_INDEX j = 0; j <= p; j++)
             DU[0][j] = ndu[j][p];
@@ -1967,6 +2125,9 @@ NL_FLAG N_SrfDerivs
                 DU[k][j] *= r;
             r *= (p - k);
         }
+        }
+        if (NOT wl_BasisDerivsFor(q, v, sur->knv->U, vsp, mv, DV))
+        {
         N_ComputeBasisFunctions(q, v, sur->knv->U, vsp, ndu);
         for (NL_INDEX j = 0; j <= q; j++)
             DV[0][j] = ndu[j][q];
@@ -1976,6 +2137,7 @@ NL_FLAG N_SrfDerivs
             for (NL_INDEX j = 0; j <= q; j++)
                 DV[k][j] *= r;
             r *= (q - k);
+        }
         }
 
         noW = (Pw[0][0].w == NL_NOW);
@@ -1989,7 +2151,9 @@ NL_FLAG N_SrfDerivs
         for (NL_INDEX k = 0; k <= udr; k++)
             for (NL_INDEX l = 0; l <= vdr; l++)
                 A[k][l][0] = A[k][l][1] = A[k][l][2] = A[k][l][3] = 0.0;
-        for (NL_INDEX l = 0; l <= mv; l++)
+        /* WASMLib: degrees 1 to 3 each way on a 3D net go to wl_SrfHomogeneousSum; the loop below does the rest */
+        const NL_BOOLEAN wlSummed = noZ ? NL_FALSE : wl_SrfHomogeneousSumFor(p, q, noW, Pw, l2, l3, DU, DV, mu, mv, udr, upper, A);
+        for (NL_INDEX l = 0; l <= mv AND NOT wlSummed; l++)
         {
             NL_REAL T[NL_MAXDEG + 1][4];
             for (NL_INDEX i = 0; i <= p; i++)

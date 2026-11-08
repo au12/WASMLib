@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmLine.cpp
@@ -462,10 +464,12 @@ SmStatus SmLine::ConvertTFromNURBSToSTEP
   const
 {
   // swap NurbPoint when needed
-  SmExtent1d sNurbIvl = GetNaturalInterval();
+  SmExtent1d sNurbIvl = SmLine::GetNaturalInterval();  // WASMLib: called directly (nothing derives from SmLine)
   
   // convert linear coordinate
-  SmBoolean bIsBounded = IsBounded() ;
+  // WASMLib: IsBounded() - m_vAnalDomain.IsBounded() - written out: this runs for every point evaluated on a line
+  SmBoolean bIsBounded = (   !SM_IS_INFINITE(m_vAnalDomain.GetMin())
+                          && !SM_IS_INFINITE(m_vAnalDomain.GetMax())) ;
   if(bIsBounded)  { double dNurbsLength = sNurbIvl.GetLength() ;
                     if(SM_IS_ZERO(dNurbsLength))
                       { rdSTEPParam = dNURBSParam ; }

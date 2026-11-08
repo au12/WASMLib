@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmFaceuse.cpp
@@ -24,6 +26,7 @@
 
 #include <SmGraphicsOutput.h>
 #include <SmAssertArray.h>
+#include <WlTools.h>   // WASMLib: wl_KeepFirstOfEach
 
 //    // For debugging only - a set of pointers that can be assigned and inspected through the watch window
 //    #ifdef SM_DEBUG_CODE                  
@@ -125,9 +128,12 @@ void SmFaceuse::GetEdgeuses
       pLU->GetEdgeuses(sEdgeuses);
       for (ULONG j=0; j<sEdgeuses.GetSize(); j++) 
         {
-          rEdgeuses.AddUnique(sEdgeuses[j]);
+          rEdgeuses.Add(sEdgeuses[j]); // WASMLib: was AddUnique
         }
     }
+
+  // WASMLib: the repeats AddUnique kept out, removed once (see wl_KeepFirstOfEach)
+  wl_KeepFirstOfEach(rEdgeuses) ;
 
 } // end SmFaceuse::GetEdgeuses
 

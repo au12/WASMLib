@@ -6,7 +6,8 @@ This product includes SMLib and SM_API from NVIDIA's usd-brep 1.0.1
   Copyright (c) 2020-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
   Licensed under the Apache License, Version 2.0 (see LICENSE.usd-brep).
 
-WASMLib has modified some of those files for speed. Each modified file says so under its
+WASMLib has modified some of those files for speed, and added one of its own
+(smlib/source/SMLib/inc/WlTools.h). Each modified file says so under its
 licence header, each change is marked "WASMLib:" in the code, and smlib/README.md lists
 them; `git diff ae7cce2 -- smlib/` shows every change since the unmodified copy.
 
