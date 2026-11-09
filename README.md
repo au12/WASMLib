@@ -117,16 +117,19 @@ changes to SMLib made. In short (November 2026, Node 22, median of 3):
 | Fillet a box's 12 edges, then its volume | 38 ms | **33 ms** | 111 ms |
 | “DadCAD 2026” engraved into a plate | 699 ms | **622 ms** | 2 039 ms |
 | 48 holes cut one at a time | 991 ms | **383 ms** | 726 ms |
-| M8 bolt, real thread: build + STL mesh | 7.5 s | **1.4 s** | 6.5 s |
+| M8 bolt, real thread: build + STL mesh | 7.8 s | **1.0 s** | 6.5 s |
 | M8 nut, tapped hole: build | 2.0 s | **0.17 s** | 9.8 s |
 | Helical gear | 0.94 s | **0.73 s** | 2.8 s |
 | Knurled knob | 2.0 s | **1.2 s** | 8.1 s |
-| Shell a filleted box | **58 ms** | 183 ms | 576 ms |
+| Shell a filleted box | **53 ms** | 183 ms | 576 ms |
+| 48 holes, one boolean | **86 ms** | 149 ms | 616 ms |
 | STEP export of a filleted box | 97 ms | **61 ms** | 141 ms |
 
 Every part builds valid with the same volume on each, and WASMLib beats smlibwasm on all 12. Against OpenCascade it
-is now ahead on knurls, text, gears, the tapped nut, booleans one at a time and meshing, and level on fillets; still
-slower on shells (3.2×), one boolean with many tools (2.7×) and a bolt's thread.
+is now ahead on knurls, text, gears, threads (a bolt's 3× quicker since the screw sweep's own region fix), the tapped
+nut, booleans one at a time and meshing, and level on fillets; still slower on shells (3.5×) and one boolean with many
+tools (1.7×). The WASMLib column is from DadCAD v0.17.0's run (the bolt, shells and holes; the rest from the
+four-way run).
 
 ## What SMLib doesn't do
 
