@@ -14,6 +14,9 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   integrate the volume rather than every mass property, and point tests on flat faces that skip loops the point is
   nowhere near. The same answers (volumes within the accuracy asked for); in DadCAD a knurled knob builds 3.9× faster
   than on the unchanged SMLib, engraved text 2.2–2.4×, a plate of 48 holes 1.7×, a filleted box 1.4×, a shell 1.3×.
+- **Fillets SMLib got wrong, fixed in it.** A fillet surface that ran on past an edge's end but not past its start
+  (so the mirror image of a fillet that worked failed), and a closed surface's seam at a fillet's end taken for a side
+  edge. Both in [`smlib/README.md`](smlib/README.md), found by replaying the failing call natively.
 
 - **All of SM_API, one to one** — 176 functions, generated from upstream's headers (`tools/gen_smapi.py`), with
   TypeScript declarations carrying upstream's parameter notes.

@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib): each change is marked "WASMLib:" below and listed in
+// smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmFilletCorner.cpp
@@ -41,6 +43,61 @@ PURPOSE: Given a side edgeuse determine whether itself or its radial
             is the one which FilletSolver use in solving Rail_x_SideEdge
 NOTES:
 ********************************************************************/
+/********************************************************************
+WASMLib: walking round a vertex from edgeuse to edgeuse in a face's loop, over a closed surface's seam.
+
+A seam has two edgeuses in the same loop of the same face (the face on both its sides). Where an edge's loop
+neighbour at the vertex is a seam, the face carries on past it: the next edge round the vertex in that face is the
+loop neighbour, at the same vertex, of the seam's other use in the loop. These return the CW neighbour (the edgeuse
+in the loop that ends where pEU starts) and the CCW one (that starts where pEU ends), stepping over seams; for an
+edgeuse with no seam beside it they're GetCWEdgeuse() and GetCCWEdgeuse().
+********************************************************************/
+static SmEdgeuse * wl_OtherSeamUse(SmEdgeuse * pSeamEU, const SmVertex * pV, SmBoolean bStartsAtV)
+{
+  SmTArray<SmEdgeuse*> sEUs;
+  if (pSeamEU->GetEdge()->GetEdgeuses(sEUs) != SM_SUCCESS) return NULL;
+  for (ULONG i=0; i<sEUs.GetSize(); i++)
+    {
+      SmEdgeuse * pEU = sEUs[i];
+      if (pEU == pSeamEU || pEU->GetLoopuse() != pSeamEU->GetLoopuse()) continue;
+      const SmVertex * pFrom = pEU->GetVertexuse()->GetVertex();
+      const SmVertex * pTo   = pEU->GetMate()->GetVertexuse()->GetVertex();
+      if (bStartsAtV ? pFrom == pV : pTo == pV) return pEU;
+    }
+  return NULL;
+}
+static SmEdgeuse * wl_CWOverSeams(SmEdgeuse * pEU)
+{
+  const SmVertex * pV = pEU->GetVertexuse()->GetVertex();
+  SmEdgeuse * pCW = pEU->GetCWEdgeuse();
+  for (int i=0; i<4 && pCW && pCW->GetEdge() != pEU->GetEdge() && pCW->GetEdge()->IsSeam(); i++)
+    {
+      SmEdgeuse * pOther = wl_OtherSeamUse(pCW, pV, TRUE);
+      if (!pOther) break;
+      pCW = pOther->GetCWEdgeuse();
+    }
+  return pCW;
+}
+static SmEdgeuse * wl_CCWOverSeams(SmEdgeuse * pEU)
+{
+  const SmVertex * pV = pEU->GetMate()->GetVertexuse()->GetVertex();
+  SmEdgeuse * pCCW = pEU->GetCCWEdgeuse();
+  for (int i=0; i<4 && pCCW && pCCW->GetEdge() != pEU->GetEdge() && pCCW->GetEdge()->IsSeam(); i++)
+    {
+      SmEdgeuse * pOther = wl_OtherSeamUse(pCCW, pV, FALSE);
+      if (!pOther) break;
+      pCCW = pOther->GetCCWEdgeuse();
+    }
+  return pCCW;
+}
+/// WASMLib: GetCornerMateEdgeuse() over seams (see wl_CWOverSeams)
+static SmEdgeuse * wl_CornerMateOverSeams(SmEdgeuse * pEU, const SmVertex * pV)
+{
+  if (pEU->GetVertexuse()->GetVertex() == pV) return wl_CWOverSeams(pEU);
+  if (pEU->GetMate()->GetVertexuse()->GetVertex() == pV) return wl_CCWOverSeams(pEU);
+  return NULL;
+}
+
 static SmEdgeuse * sm_FindSideEdgeuse      // rtn: edgeuse
  (SmEdgeuse * pFilEdgeuse,           // in : target fillet edgeuse
   SmEdgeuse * pSideEU,               // in : target sideEdgeuse - connects to a filleted edge at an filletCorner
@@ -58,7 +115,16 @@ static SmEdgeuse * sm_FindSideEdgeuse      // rtn: edgeuse
       pEU = pEU->GetRadial();
       pE  = pEU->GetCCWEdgeuse()->GetEdge();
       if (pFilletedEdge != pE)
-          return NULL;
+        {
+          // WASMLib: a closed surface's seam between them (the seam isn't a side edge: see SmFilletCorner::Create)
+          pEU = pSideEU;
+          if (wl_CWOverSeams(pEU)->GetEdge() != pFilletedEdge)
+            {
+              pEU = pEU->GetRadial();
+              if (wl_CCWOverSeams(pEU)->GetEdge() != pFilletedEdge)
+                return NULL;
+            }
+        }
     }
 
 #ifdef SM_DEBUG_CODE
@@ -468,6 +534,14 @@ static SmBoolean same_convexity_edges // rtn: TRUE=convexities are the same, FAL
   if ( pEdgeuse2->GetEdge() != pEdge2 )
     {
       pEdgeuse2 = pConcaveEU1->GetRadial()->GetCornerMateEdgeuse( pVertex );
+    }
+  // WASMLib: a closed surface's seam between them (the seam isn't a side edge: see SmFilletCorner::Create)
+  if ( pEdgeuse2->GetEdge() != pEdge2 )
+    {
+      pEdgeuse2 = wl_CornerMateOverSeams( pConcaveEU1, pVertex );
+      if ( !pEdgeuse2 || pEdgeuse2->GetEdge() != pEdge2 )
+        { pEdgeuse2 = wl_CornerMateOverSeams( pConcaveEU1->GetRadial(), pVertex ); }
+      if ( !pEdgeuse2 ) { SER(SM_ERR) ; }
     }
   SM_ASSERT( pEdgeuse2->GetEdge() == pEdge2 );
 
@@ -1211,6 +1285,17 @@ static int iDebugLevel = 0; // Note: Can't call DebugLevel() from a static metho
             }
         }
       if (bFound) 
+        { continue ; }
+
+      // WASMLib: a closed surface's seam at the end of a single open filleted edge isn't a side edge: the same face
+      // lies on both sides of it, so the fillet's end can't be cut against it (its rail is tangent to that face, and
+      // the surface/surface intersection fails: a ball cut by a plane through its axis that holds the seam, then one
+      // arc where another plane cuts it filleted). Left out, the corner is the one it would be without the seam.
+      // Closed filleted edges (Nx1Closed) and chains through a seam vertex keep it: they're built round it.
+      if (   lTotalSolverEUs == 1
+          && !pStartEU->GetEdge()->IsClosed()
+          && pEU->GetEdge() != pStartEU->GetEdge()
+          && pEU->GetEdge()->IsSeam())
         { continue ; }
 
       // lamina edges have OpenEndCorners

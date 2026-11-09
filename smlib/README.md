@@ -6,7 +6,7 @@ upstream's own test suite in `tests/SM_API_test`. It was copied in unchanged (WA
 WASMLib has changed since is an ordinary commit, so `git diff ae7cce2 -- smlib/` shows all of it. Each changed file says
 so under its licence header, and each change is marked `WASMLib:` in the code.
 
-Every change is for speed and is written so the answers can't change — a test is skipped only where its answer is
+Every change in the table below is for speed and is written so the answers can't change — a test is skipped only where its answer is
 known in advance — except the volume change, whose volumes move within the accuracy asked for (below). Upstream's
 SM_API test suite must keep passing 127/127 (`tools/build.sh test` in WebAssembly, `tools/build.sh native` natively).
 
@@ -35,6 +35,20 @@ knurl the edge's two ends are often in pieces that just split apart, which a sea
 walking its whole piece, so it seldom proved anything and cost more (searching from both ends at once, as **Shell
 pieces** does, ends as soon as the smaller piece runs out); and building a polyhedron by gluing faces pair by pair —
 region tracking makes every glue walk the shell, 3× slower than SMLib's stitch.
+
+## Bugs fixed
+
+Two fillet failures found filleting a ball with a notch cut in it (from DadCAD: a ball, an 8.5 mm square on the front
+plane cut out of its top). Each was found by replaying the failing `SmApiFilletEdges` call natively with SMLib's error
+trace on (`-DSM_DEBUG_CODE=1`), and the cases that rounded before still do, to within a part in 10 000 of the fillet's own volume (the surface runs on further past a start now, so its fit moves slightly); upstream's suite still passes 127/127.
+
+| Fix | What went wrong | Measured |
+|---|---|---|
+| **Extension before the start** (`SmSurfaceIntersector.cpp`) | A fillet surface is traced along the edge and, at ends that need it, run on past them, to a distance set for arcs (`SetExtensionDistance`). Past the end it measures from the last point traced; past the start — traced by reversing the curve and carrying on from the old start — it measured from that same point, now at the far end, so the trace stopped as soon as it began: no extension before the start. At a corner whose end face turns back (a notch's floor under an arc on its wall) the surface didn't reach the end face, and the end couldn't be cut. The same edge running the other way rounded, so one arc of a symmetric notch filleted and its mirror image didn't. Now the clipping measures from the old start. | the mirror-image arc: fails → rounds, 8.2969 mm³ off against 8.2967 for the other; an arc along a ball's seam (a quarter cut along the plane the seam lies in): fails → rounds |
+| **A seam at a fillet's end** (`SmFilletCorner.cpp`) | Where a closed surface's seam (the same face on both its sides) meets the end of a single open filleted edge, the corner took the seam for a side edge and cut the fillet's end against the face across it — the face the fillet is tangent to, so the surface/surface intersection failed. The seam is now left out of the corner's edges, and the walks round the vertex that find each side edge's face step over it (`wl_CWOverSeams`, used only where the old walk found nothing). Closed filleted edges and chains through a seam are left as they were. | an arc ending where a plane through a ball's axis cut it along its seam: fails → rounds, 3.4314 mm³ off (3.2002 with the cut 1 mm off the seam: 7% shorter arc, 7% less) |
+
+Still failing: a fillet running over a ball's pole (DadCAD makes its balls turned so the planes people cut on miss
+the poles and the seam).
 
 To find the next one: save the inputs of a slow call from the real app (`writeBrep`), replay it in a small native
 program linked against `build-native`'s `libsmlib.a` and `libsmapi.a`, and profile that under callgrind — guessing from

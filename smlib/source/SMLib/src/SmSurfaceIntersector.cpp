@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib): each change is marked "WASMLib:" below and listed in
+// smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmSurfaceIntersector.cpp 
@@ -7003,6 +7005,14 @@ static ULONG lDebugCount = 0 ;
                                          //   so oldParamRange[0,max] is the same as
                                          //      newParamRange[0,max] (just running in opposite dirs]
           m_dCurveTraceDirection *= -1.0;
+          // WASMLib: the extension clipping measures from the last through point, at the far end of the curve just
+          // traced; reversed, the trace carries on from the old start, now the curve's last point, whose parameter is
+          // already past that point plus the extension distance (when the end was extended too), so the extension
+          // before the start stopped before it began. Measure it from the old start. (A fillet along an arc whose
+          // start sat at a corner needing the surface run on past it failed there, and the same edge running the
+          // other way rounded: one arc of a notch in a ball filleted, its mirror image didn't.)
+          if ( m_bDoingExtensionClipping && m_vCurvePoints.GetLastNode() != NULL )
+            { m_dLastThroughParmeter = m_vCurvePoints.GetLastNode()->m_dCurveParameter; }
           SER(TraceCurve(*pTSP,s3DCurves));
 
         // a cusp will be made if TraceCurve reversed directions on the last call
