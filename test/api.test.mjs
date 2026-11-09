@@ -76,6 +76,39 @@ check("screw sweep: a closed solid", !!W.SmApiBrepIsManifoldSolid(sw.brep) && W.
 check("screw sweep: its exact volume", near(sw.volume, Math.PI * 5, 1e-9), String(sw.volume));
 check("screw sweep: integrated volume agrees", near(W.SmApiBrepComputeVolume(sw.brep, 1e-4), Math.PI * 5, 1e-4));
 check("screw sweep: mesh volume agrees", near(meshVol(sw.brep), Math.PI * 5, 5e-3), String(meshVol(sw.brep)));
+// drawing: a thread-like screw sweep (a profile going once round the axis, turned 8 times while rising 20) has its
+// side sampled on a grid — every triangle facing out, on the surface — and the flat ends meshed as usual
+{
+  const pts = [];
+  for (let i = 0; i < 120; i++) { const a = 2 * Math.PI * i / 120, r = 9 + 0.6 * Math.cos(a); pts.push([r * Math.cos(a), r * Math.sin(a), 0]); }
+  pts.push(pts[0]);
+  const prof = W.SmApiCreateCurve(pts);
+  const th = W.screwSweep([prof], [0, 0, 0], [0, 0, 1], [0, 0, 20], 8 * 360, 1e-4);
+  const t0 = performance.now();
+  const dm = W.displayMesh(th.brep, { chordHeightTol: 0.1, curveAngleTolDeg: 20, surfaceAngleTolDeg: 20 }, { tol: 0.02, angleDeg: 20 });
+  const ms = performance.now() - t0;
+  const faces = W.brepFaces(th.brep), side = faces.findIndex((f) => W.faceInfo(f).kind === "bspline");
+  const [s0, n0] = [dm.groups[2 * side], dm.groups[2 * side + 1]];
+  let out = 0, total = 0, off = 0, lost = 0; const far = [];
+  const X = dm.vertices, I = dm.triangles;
+  for (let t = s0; t < s0 + n0; t += 7) {
+    const [a, b, c] = [I[3 * t], I[3 * t + 1], I[3 * t + 2]].map((k) => [X[3 * k], X[3 * k + 1], X[3 * k + 2]]);
+    const e1 = a.map((x, j) => b[j] - x), e2 = a.map((x, j) => c[j] - x);
+    const fn = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
+    if (Math.hypot(...fn) < 1e-12) continue;
+    const cen = a.map((x, j) => (x + b[j] + c[j]) / 3);
+    let q; try { q = W.faceNormal(faces[side], cen); } catch { continue; }  // (SMLib's nearest-point search gives up on a few)
+    const d = Math.hypot(...cen.map((x, j) => x - q.point[j]));
+    if (d > 0.1) { lost++; continue; }  // (the search landed on another turn of the screw)
+    total++; if (fn[0] * q.normal[0] + fn[1] * q.normal[1] + fn[2] * q.normal[2] > 0) out++;
+    off = Math.max(off, d); if (d > 0.03) far.push(d.toFixed(3));
+  }
+  check("display mesh: the screw side sampled on a grid, the ends meshed", dm.gridded[side] === 1 && dm.gridded.reduce((x, y) => x + y, 0) === 1 && dm.groups.length / 2 === faces.length);
+  check("display mesh: every sampled triangle faces out; nearly all within the 0.02 asked (+ float rounding), none past 0.1", total > 1000 && lost < total / 100 && out === total && far.length < total / 50 && off < 0.1, `${out}/${total}, ${off.toFixed(4)} off (${far.length} past 0.03: ${far.slice(0, 8)}), ${lost} lost, ${ms.toFixed(0)} ms`);
+  const gm = W.mesh(th.brep, { chordHeightTol: 0.1, curveAngleTolDeg: 20, surfaceAngleTolDeg: 20 });
+  check("display mesh: the general mesh is left as it was (for export)", gm.groups.length === dm.groups.length && !("gridded" in gm));
+  W.destroy(th.brep); W.destroy(prof);
+}
 const swBox = W.brepBox(sw.brep);
 check("screw sweep: it stays within the turning disc", near(swBox[1][0], 3, 1e-3) && near(swBox[0][0], -3, 1e-3) && near(swBox[0][2], 0) && near(swBox[1][2], 5), JSON.stringify(swBox));
 W.destroy(disc);

@@ -120,6 +120,15 @@ export interface Objects {
 
   /** triangles of a whole Brep, grouped by face, normals outward */
   mesh(b: Ptr<"SmBrep">, params: TessellationParams | null): MeshArrays;
+  /**
+   * Triangles for drawing a Brep: as `mesh`, except big B-spline faces that are all of a rectangle of their parameters
+   * (a thread's flank, a twisted extrusion's side, a loft) are sampled on a grid, with normals from the surface — SMLib's
+   * tessellator folds a third of a thread's triangles — and the other faces are tessellated without them. `grid`: the
+   * grid's largest distance off the surface (`tol`), largest turn between neighbouring facets (`angleDeg`), and most
+   * points per face (`maxPoints`, default 400 000). Not watertight: for the view, not for export. `gridded`: 1 for each
+   * face sampled on a grid.
+   */
+  displayMesh(b: Ptr<"SmBrep">, params: TessellationParams | null, grid: { tol: number; angleDeg: number; maxPoints?: number }): MeshArrays & { gridded: Uint8Array };
   /** every edge as a polyline (segment end pairs), grouped by edge in the Brep's edge order */
   edgeLines(b: Ptr<"SmBrep">, angleTolDeg: number): { lines: Float32Array; groups: Uint32Array };
 

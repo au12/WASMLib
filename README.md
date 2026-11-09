@@ -24,6 +24,12 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   Brep's topology; the analytic surface or curve under a face or edge (B-splines that are really lines or circular
   arcs say so); outward normals; meshes as typed arrays grouped by face; edge polylines; mirror and general affine
   transforms; SMLib's own `.smb` files.
+- **A mesh for drawing** (`displayMesh`) — as `mesh`, but big B-spline faces that are all of a rectangle of their
+  parameters (a thread's flank, a twisted extrusion's side, a loft) are sampled on a grid, with normals from the surface
+  and the grid as fine as their curvature needs, and only the other faces are tessellated. SMLib's tessellator works in
+  the parameter plane, and on a thread, whose two parameter directions both run round the axis 2° apart, it folds a
+  third of the triangles (dark stripes along the thread): an M8 × 30 thread drew in 700 ms with folds, 31 ms without.
+  Not watertight where the grid meets its neighbours, so it's for the view; exports keep `mesh`.
 - **Solids SMLib has no call for** (`bind/build.cpp`): a **screw sweep** — a closed profile moved along an axis while
   it turns about it (threads, helical gears, twisted vases) — as one B-spline face per profile curve, fitted to the
   true screw surface within a tolerance you give, its faces glued along the edges known to meet (SMLib's general stitch

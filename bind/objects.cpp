@@ -5,6 +5,7 @@
 #include "geom.h"
 
 #include <SmBSplineCurve.h>
+#include <SmBSplineSurface.h>
 #include <SmCircle.h>
 #include <SmCone.h>
 #include <SmContext.h>
@@ -17,6 +18,7 @@
 #include <SmFace.h>
 #include <SmFaceuse.h>
 #include <SmLine.h>
+#include <SmLoop.h>
 #include <SmMessages.h>
 #include <SmPlane.h>
 #include <SmPoly.h>
@@ -568,6 +570,80 @@ val facePoint(const val& h, double u, double v) {
 }
 
 // ---- meshes
+/** triangles being gathered for a mesh: vertices and normals (xyz), triangles, and start, count per face */
+struct MeshOut {
+    std::vector<float> V, N;
+    std::vector<uint32_t> T, G;
+};
+/**
+ * The polyfaces SMLib's tessellator made for each face of `faces` (by[i] for faces[i]; `orig` maps a polyface's face
+ * to its place, when the tessellated Brep is a copy of these faces).
+ */
+std::vector<std::vector<SmPolyFace*>> polyfaces_by_face(SmPolyBrep* pb, const SmTArray<SmFace*>& faces) {
+    const unsigned nf = faces.GetSize();
+    std::unordered_map<const SmTopology*, unsigned> index;
+    index.reserve(nf * 2);
+    for (unsigned i = 0; i < nf; ++i) index.emplace(faces[i], i);
+    std::vector<std::vector<SmPolyFace*>> by(nf + 1);
+    SmTArray<SmPolyFace*> pfs;
+    if (pb) pb->GetPolyFaces(pfs);
+    for (ULONG i = 0; i < pfs.GetSize(); ++i) {
+        auto it = index.find(pfs[i]->GetOriginalFace());
+        by[it == index.end() ? nf : it->second].push_back(pfs[i]);
+    }
+    return by;
+}
+/** one face's polyfaces as triangles (its own vertices: normals differ across an edge), normals out of the material */
+void append_polyfaces(MeshOut& o, const std::vector<SmPolyFace*>& pfs, const SmFace* orig) {
+    std::unordered_map<SmPolyVertex*, uint32_t> local;
+    SmTArray<SmPolyEdge*> loop;
+    for (SmPolyFace* pf : pfs) {
+        SmPolyLoop* pl = pf->GetOuterPolyLoop();
+        if (!pl) continue;
+        loop.RemoveAll();
+        pl->GetPolyEdges(loop);
+        const ULONG n = loop.GetSize();
+        if (n < 3) continue;
+        const SmVector3d wind = unit(pf->GetNormal(TRUE, FALSE));
+        uint32_t ids[64];
+        std::vector<uint32_t> big;
+        uint32_t* id = n <= 64 ? ids : (big.resize(n), big.data());
+        for (ULONG j = 0; j < n; ++j) {
+            SmPolyVertex* pv = loop[j]->GetStartPolyVertex();
+            auto it = local.find(pv);
+            if (it == local.end()) {
+                const SmPoint3d q = pv->GetPoint();
+                // the vertex's normal on this face's surface (a vertex on an edge has one per face), turned to
+                // agree with the facet's winding, which runs round the outward normal
+                const auto& ns = pv->GetNormalsRef();
+                const auto& fs = pv->GetFacesRef();
+                SmVector3d nv(0, 0, 0);
+                bool found = false;
+                for (ULONG k = 0; k < fs.GetSize() && k < ns.GetSize(); ++k)
+                    if (fs[k] == static_cast<const SmTopology*>(orig)) { nv = ns[k]; found = true; break; }
+                if (!found) for (ULONG k = 0; k < ns.GetSize(); ++k) nv += ns[k];
+                nv = unit(nv, wind);
+                if (dot(nv, wind) < 0) nv = SmVector3d(-nv.x, -nv.y, -nv.z);
+                const uint32_t vi = o.V.size() / 3;
+                o.V.insert(o.V.end(), {float(q.x), float(q.y), float(q.z)});
+                o.N.insert(o.N.end(), {float(nv.x), float(nv.y), float(nv.z)});
+                it = local.emplace(pv, vi).first;
+            }
+            id[j] = it->second;
+        }
+        for (ULONG j = 1; j + 1 < n; ++j) o.T.insert(o.T.end(), {id[0], id[j], id[j + 1]});
+    }
+}
+val mesh_js(MeshOut& o, const SmTArray<SmTessellationFailure>& fails, bool manifold) {
+    val r = val::object();
+    r.set("vertices", typed(o.V));
+    r.set("normals", typed(o.N));
+    r.set("triangles", typed(o.T));
+    r.set("groups", typed(o.G));
+    r.set("failures", wl::js(fails));
+    r.set("outputManifold", manifold);
+    return r;
+}
 /**
  * Triangles for a whole Brep, grouped by face in the Brep's face order: { vertices, normals (Float32Array xyz),
  * triangles (Uint32Array), groups (Uint32Array: start, count per face, in triangle-index units), failures }. Each
@@ -586,77 +662,274 @@ val mesh(const val& h, const val& params) {
 
     SmTArray<SmFace*> faces;
     b->GetFaces(faces);
-    const unsigned nf = faces.GetSize();
-    std::unordered_map<const SmTopology*, unsigned> index;
-    index.reserve(nf * 2);
-    for (unsigned i = 0; i < nf; ++i) index.emplace(faces[i], i);
-    std::vector<std::vector<SmPolyFace*>> by(nf + 1);
-    SmTArray<SmPolyFace*> pfs;
-    if (pb) pb->GetPolyFaces(pfs);
-    for (ULONG i = 0; i < pfs.GetSize(); ++i) {
-        auto it = index.find(pfs[i]->GetOriginalFace());
-        by[it == index.end() ? nf : it->second].push_back(pfs[i]);
+    const auto by = polyfaces_by_face(pb, faces);
+    MeshOut o;
+    o.V.reserve(by.size() * 64);
+    for (unsigned fi = 0; fi < faces.GetSize(); ++fi) {
+        const uint32_t start = o.T.size();
+        append_polyfaces(o, by[fi], faces[fi]);
+        o.G.push_back(start);
+        o.G.push_back(o.T.size() - start);
     }
-    std::vector<float> V, N;
-    std::vector<uint32_t> T, G;
-    V.reserve(pfs.GetSize() * 6);
-    N.reserve(pfs.GetSize() * 6);
-    T.reserve(pfs.GetSize() * 3);
-    G.reserve(nf * 2);
-    std::unordered_map<SmPolyVertex*, uint32_t> local;
-    SmTArray<SmPolyEdge*> loop;
-    for (unsigned fi = 0; fi < nf; ++fi) {
-        const uint32_t start = T.size();
-        SmFace* orig = faces[fi];
-        local.clear();
-        for (SmPolyFace* pf : by[fi]) {
-            SmPolyLoop* pl = pf->GetOuterPolyLoop();
-            if (!pl) continue;
-            loop.RemoveAll();
-            pl->GetPolyEdges(loop);
-            const ULONG n = loop.GetSize();
-            if (n < 3) continue;
-            const SmVector3d wind = unit(pf->GetNormal(TRUE, FALSE));
-            uint32_t ids[64];
-            std::vector<uint32_t> big;
-            uint32_t* id = n <= 64 ? ids : (big.resize(n), big.data());
-            for (ULONG j = 0; j < n; ++j) {
-                SmPolyVertex* pv = loop[j]->GetStartPolyVertex();
-                auto it = local.find(pv);
-                if (it == local.end()) {
-                    const SmPoint3d q = pv->GetPoint();
-                    // the vertex's normal on this face's surface (a vertex on an edge has one per face), turned to
-                    // agree with the facet's winding, which runs round the outward normal
-                    const auto& ns = pv->GetNormalsRef();
-                    const auto& fs = pv->GetFacesRef();
-                    SmVector3d nv(0, 0, 0);
-                    bool found = false;
-                    for (ULONG k = 0; k < fs.GetSize() && k < ns.GetSize(); ++k)
-                        if (fs[k] == static_cast<SmTopology*>(orig)) { nv = ns[k]; found = true; break; }
-                    if (!found) for (ULONG k = 0; k < ns.GetSize(); ++k) nv += ns[k];
-                    nv = unit(nv, wind);
-                    if (dot(nv, wind) < 0) nv = SmVector3d(-nv.x, -nv.y, -nv.z);
-                    const uint32_t vi = V.size() / 3;
-                    V.insert(V.end(), {float(q.x), float(q.y), float(q.z)});
-                    N.insert(N.end(), {float(nv.x), float(nv.y), float(nv.z)});
-                    it = local.emplace(pv, vi).first;
-                }
-                id[j] = it->second;
-            }
-            for (ULONG j = 1; j + 1 < n; ++j) T.insert(T.end(), {id[0], id[j], id[j + 1]});
-        }
-        G.push_back(start);
-        G.push_back(T.size() - start);
-    }
-    val o = val::object();
-    o.set("vertices", typed(V));
-    o.set("normals", typed(N));
-    o.set("triangles", typed(T));
-    o.set("groups", typed(G));
-    o.set("failures", wl::js(fails));
-    o.set("outputManifold", static_cast<bool>(rep.outputManifold));
-    return o;
+    return mesh_js(o, fails, rep.outputManifold);
     WL_END("mesh")
+}
+
+// ---- drawing: faces sampled on a grid
+/**
+ * How finely to sample a face on a grid: steps across its box in u and v that keep the facets within `tol` of the
+ * surface and turning by at most `ang` (radians) from one to the next. Measured along five lines each way from the
+ * curvature across each line: the steps an adaptive split would take (the need integrated along the line), doubled
+ * where the need is uneven but never past what its worst spot needs — a sharp turn inside one span (a thread's
+ * crest) is rounded a little rather than sampled finely all round. At least one step per knot span.
+ */
+struct GridPlan { double nu = 0, nv = 0; };
+GridPlan plan_grid(const SmSurface* s, const SmExtent2d& box, ULONG su, ULONG sv, double tol, double ang) {
+    GridPlan g;
+    const SmPoint2d lo = box.GetMin();
+    const double w[2] = {box.GetMax().x - lo.x, box.GetMax().y - lo.y};
+    const ULONG spans[2] = {su, sv};
+    for (int dir = 0; dir < 2; ++dir) {
+        const ULONG m = std::min<ULONG>(4000, std::max<ULONG>(32, spans[dir] * 4));
+        double most = 0;
+        for (int l = 0; l < 5; ++l) {
+            const double across = (l + 0.5) / 5;
+            double sum = 0, peak = 0;
+            for (ULONG k = 0; k < m; ++k) {
+                const double t = (k + 0.5) / m;
+                const SmPoint2d uv = dir == 0 ? SmPoint2d(lo.x + w[0] * t, lo.y + w[1] * across) : SmPoint2d(lo.x + w[0] * across, lo.y + w[1] * t);
+                SmPoint3d p;
+                SmVector3d du, dv, duv, duu, dvv;
+                if (s->Evaluate2ndDerivatives(uv, TRUE, TRUE, p, du, dv, duv, duu, dvv) != SM_SUCCESS) continue;
+                const double lu = len(du), lv = len(dv);
+                // derivatives along the line, per unit of t (the fraction of the box)
+                const SmVector3d a = dir == 0 ? du : dv, c = dir == 0 ? duu : dvv;
+                const double L = w[dir], sp = (dir == 0 ? lu : lv) * L;
+                if (!(sp > 1e-12)) continue;
+                const SmVector3d d1(a.x * L, a.y * L, a.z * L), d2(c.x * L * L, c.y * L * L, c.z * L * L);
+                const double along = dot(d2, d1) / (sp * sp);
+                const double kp = len(SmVector3d(d2.x - d1.x * along, d2.y - d1.y * along, d2.z - d1.z * along));
+                // a step h bows kp·h²/8 off the surface and turns by kp·h/sp
+                const double need = std::max(std::sqrt(kp / (8 * tol)), kp / sp / ang);
+                sum += need / m;
+                peak = std::max(peak, need);
+            }
+            most = std::max(most, std::min(peak, 2 * sum));
+        }
+        (dir == 0 ? g.nu : g.nv) = std::max({most, double(spans[dir]), 4.0});
+    }
+    return g;
+}
+/** distinct knot spans of a B-spline surface across [a, b] of one parameter */
+ULONG knot_spans(const SmBSplineSurface* s, SmSurfParamType d, double a, double b) {
+    SmTArray<double> k;
+    SmTArray<ULONG> m;
+    const SmExtent1d iv(a, b);
+    if (s->GetKnots(d, k, &m, &iv) != SM_SUCCESS || k.GetSize() < 2) return 1;
+    return k.GetSize() - 1;
+}
+/**
+ * A face whose one loop runs along the sides of its parameter box to within `tol` (in space), though its trims
+ * aren't exactly lines of constant u or v — a thread cut to a nut's height, whose trims came from intersecting the
+ * flank with the nut's top and bottom (the planes the thread's ends lie in). Each edge is sampled, each sample's
+ * place on the surface found, moved onto the nearest side of the box, and must stay within `tol`; `box` is set to
+ * the face's parameter box.
+ */
+bool sides_of_box(const SmFace* f, SmExtent2d& box, double tol) {
+    SmTArray<SmLoop*> loops;
+    f->GetLoops(loops);
+    if (loops.GetSize() != 1) return false;
+    SmTArray<SmEdge*> es;
+    loops[0]->GetEdges(es);
+    if (es.GetSize() < 2 || es.GetSize() > 4) return false;
+    box = f->GetUVDomain();
+    const SmSurface* s = f->GetSurface();
+    const SmPoint2d lo = box.GetMin(), hi = box.GetMax();
+    for (ULONG i = 0; i < es.GetSize(); ++i) {
+        const EdgeRun r = edge_run(es[i]);
+        int side = -1;  // 0: u at either end (a seam may come back as either), 1: v low, 2: v high
+        for (int k = 1; k < 8; ++k) {  // (its ends sit on corners, on two sides at once)
+            const SmVector3d p = at(r.c, r.t0 + (r.t1 - r.t0) * k / 8);
+            SmPoint3d q;
+            SmTArray<SmPoint2d> uvs;
+            double d = 0;
+            if (SmApiSurfaceClosestPoint(s, p, q, uvs, d) != SM_SUCCESS || !uvs.GetSize() || d > tol) return false;
+            const SmPoint2d uv = uvs[0];
+            // the nearest side of the box, and the point moved onto it
+            const double du = std::min(std::fabs(uv.x - lo.x), std::fabs(uv.x - hi.x)) / (hi.x - lo.x);
+            const double dl = std::fabs(uv.y - lo.y) / (hi.y - lo.y), dh = std::fabs(uv.y - hi.y) / (hi.y - lo.y);
+            const int near = du <= std::min(dl, dh) ? 0 : dl <= dh ? 1 : 2;
+            if (side < 0) side = near;
+            else if (near != side) return false;
+            const SmPoint2d m = near == 0 ? SmPoint2d(std::fabs(uv.x - lo.x) < std::fabs(uv.x - hi.x) ? lo.x : hi.x, uv.y)
+                                          : SmPoint2d(uv.x, near == 1 ? lo.y : hi.y);
+            SmVector3d on;
+            if (SmApiEvaluateSurfacePoint(s, m, on) != SM_SUCCESS || len(on - p) > tol) return false;
+        }
+    }
+    return true;
+}
+/**
+ * The face as a grid of samples, appended to `o` — if it's worth it: a B-spline face that is all of a rectangle of
+ * its surface's parameters (one loop of four trims along constant u or v: a thread's flank, a twisted extrusion's
+ * side, a loft) and either big (as many control points as a thread's flank) or with parameter lines meeting at
+ * under 15° somewhere (a twist: SMLib's tessellator, which triangulates in the parameter plane, folds a third of a
+ * thread's triangles, as both directions run round the axis 2° apart). Points and normals (outward, from the
+ * surface's derivatives) at the grid's corners; each cell split along its shorter diagonal. False: not gridded.
+ */
+bool append_grid(MeshOut& o, const SmFace* f, double tol, double ang, double maxPoints) {
+    const SmBSplineSurface* bs = dynamic_cast<const SmBSplineSurface*>(f->GetSurface());
+    if (!bs) return false;
+    // worth it? (cheap tests first: most B-spline faces — a fillet, a gear's tooth — mesh fine)
+    {
+        const SmExtent2d d = f->GetUVDomain();
+        const SmPoint2d a = d.GetMin(), z = d.GetMax();
+        if (!(z.x > a.x) || !(z.y > a.y)) return false;
+        const ULONG poles = (knot_spans(bs, SM_SP_U, a.x, z.x) + bs->GetDegree(SM_SP_U)) * (knot_spans(bs, SM_SP_V, a.y, z.y) + bs->GetDegree(SM_SP_V));
+        bool sheared = false;
+        for (int i = 0; i < 5 && !sheared && poles < 3000; ++i)
+            for (int j = 0; j < 5 && !sheared; ++j) {
+                SmPoint3d p;
+                SmVector3d du, dv;
+                if (bs->Evaluate1stDerivatives(SmPoint2d(a.x + (z.x - a.x) * (i + 0.5) / 5, a.y + (z.y - a.y) * (j + 0.5) / 5), TRUE, TRUE, p, du, dv) != SM_SUCCESS) continue;
+                const double lu = len(du), lv = len(dv);
+                sheared = lu > 0 && lv > 0 && len(cross(du, dv)) < 0.25 * lu * lv;
+            }
+        if (poles < 3000 && !sheared) return false;
+    }
+    SmExtent2d box;
+    SmBoolean rect = FALSE, natural = FALSE;
+    if (f->FindIfRectangularTrim(box, rect, natural) != SM_SUCCESS) return false;
+    if (rect != TRUE && !sides_of_box(f, box, tol)) return false;
+    const SmPoint2d lo = box.GetMin(), hi = box.GetMax();
+    if (!(hi.x > lo.x) || !(hi.y > lo.y)) return false;
+    const ULONG su = knot_spans(bs, SM_SP_U, lo.x, hi.x), sv = knot_spans(bs, SM_SP_V, lo.y, hi.y);
+    GridPlan g = plan_grid(bs, box, su, sv, tol, ang);
+    // too many points: fewer each way, in proportion
+    const double want = (g.nu + 1) * (g.nv + 1);
+    if (want > maxPoints) { const double k = std::sqrt(maxPoints / want); g.nu *= k; g.nv *= k; }
+    const ULONG nu = std::max<ULONG>(2, ULONG(std::ceil(g.nu))), nv = std::max<ULONG>(2, ULONG(std::ceil(g.nv)));
+    const double sense = face_sense(f);
+    const uint32_t base = o.V.size() / 3;
+    o.V.reserve(o.V.size() + (nu + 1) * (nv + 1) * 3);
+    o.N.reserve(o.N.size() + (nu + 1) * (nv + 1) * 3);
+    std::vector<uint8_t> flat;  // samples where the derivatives give no normal (a pole): from the neighbours after
+    for (ULONG i = 0; i <= nu; ++i) {
+        const double u = i == nu ? hi.x : lo.x + (hi.x - lo.x) * i / nu;
+        for (ULONG j = 0; j <= nv; ++j) {
+            const double v = j == nv ? hi.y : lo.y + (hi.y - lo.y) * j / nv;
+            SmPoint3d p;
+            SmVector3d du, dv;
+            SmVector3d n(0, 0, 0);
+            if (bs->Evaluate1stDerivatives(SmPoint2d(u, v), i < nu, j < nv, p, du, dv) != SM_SUCCESS) return false;
+            const SmVector3d c = cross(du, dv);
+            const double cl = len(c);
+            if (cl > 1e-12 * std::max(1.0, len(du) * len(dv))) n = SmVector3d(c.x * sense / cl, c.y * sense / cl, c.z * sense / cl);
+            else { if (flat.empty()) flat.assign((nu + 1) * (nv + 1), 0); flat[i * (nv + 1) + j] = 1; }
+            o.V.insert(o.V.end(), {float(p.x), float(p.y), float(p.z)});
+            o.N.insert(o.N.end(), {float(n.x), float(n.y), float(n.z)});
+        }
+    }
+    const auto at = [&](ULONG i, ULONG j) { return base + uint32_t(i * (nv + 1) + j); };
+    const auto P = [&](uint32_t k) { return SmVector3d(o.V[k * 3], o.V[k * 3 + 1], o.V[k * 3 + 2]); };
+    if (!flat.empty()) {
+        // a pole: the normal of the cells round it, from their corners
+        for (ULONG i = 0; i <= nu; ++i)
+            for (ULONG j = 0; j <= nv; ++j) {
+                if (!flat[i * (nv + 1) + j]) continue;
+                const ULONG i0 = i ? i - 1 : 0, i1 = i < nu ? i + 1 : nu, j0 = j ? j - 1 : 0, j1 = j < nv ? j + 1 : nv;
+                const SmVector3d a = P(at(i1, j)) - P(at(i0, j)), b = P(at(i, j1)) - P(at(i, j0));
+                SmVector3d n = unit(cross(a, b), SmVector3d(0, 0, 0));
+                if (len(n) == 0) {
+                    // both ways collapse (the pole itself): the cells beside it
+                    const SmVector3d c1 = P(at(i1, j1)) - P(at(i0, j0)), c2 = P(at(i0, j1)) - P(at(i1, j0));
+                    n = unit(cross(c1, c2), SmVector3d(0, 0, 0));
+                }
+                const uint32_t k = at(i, j);
+                o.N[k * 3] = float(n.x * sense); o.N[k * 3 + 1] = float(n.y * sense); o.N[k * 3 + 2] = float(n.z * sense);
+            }
+    }
+    // cells wound round the outward normal: (u, v) → (u + 1, v) → (u, v + 1) is anticlockwise about du × dv
+    for (ULONG i = 0; i < nu; ++i)
+        for (ULONG j = 0; j < nv; ++j) {
+            const uint32_t a = at(i, j), b = at(i + 1, j), c = at(i + 1, j + 1), d = at(i, j + 1);
+            const bool ac = len(P(c) - P(a)) <= len(P(d) - P(b));
+            if (sense > 0) {
+                if (ac) o.T.insert(o.T.end(), {a, b, c, a, c, d});
+                else o.T.insert(o.T.end(), {a, b, d, b, c, d});
+            } else {
+                if (ac) o.T.insert(o.T.end(), {a, c, b, a, d, c});
+                else o.T.insert(o.T.end(), {a, d, b, b, d, c});
+            }
+        }
+    return true;
+}
+/**
+ * Triangles for drawing a Brep: as `mesh`, except faces worth sampling on a grid (see append_grid) are — the rest are
+ * copied out and tessellated without them, so a thread's flank costs no tessellation at all. `grid`: { tol (largest
+ * distance off the surface), angleDeg (largest turn between neighbouring facets), maxPoints (per face) }. Not
+ * watertight (the grid's edges don't share the neighbours' points): for the view, not for export. Same arrays as
+ * mesh, plus `gridded` (Uint8Array, 1 for a face sampled on a grid).
+ */
+val displayMesh(const val& h, const val& params, const val& grid) {
+    WL_BEGIN
+    SmBrep* b = wl::ptr<SmBrep>(h);
+    SmTessellationParams p;
+    if (wl::present(params)) wl::from(params, p);
+    const double tol = grid["tol"].as<double>(), ang = grid["angleDeg"].as<double>() * M_PI / 180;
+    const double maxPoints = wl::present(grid["maxPoints"]) ? grid["maxPoints"].as<double>() : 400000;
+    if (!(tol > 0) || !(ang > 0)) throw std::runtime_error("displayMesh: grid tol and angleDeg must be positive");
+
+    SmTArray<SmFace*> faces;
+    b->GetFaces(faces);
+    const unsigned nf = faces.GetSize();
+    std::vector<MeshOut> grids(nf);
+    std::vector<uint8_t> gridded(nf, 0);
+    SmTArray<SmFace*> rest;
+    std::vector<unsigned> restAt;  // rest[k] is faces[restAt[k]]
+    for (unsigned i = 0; i < nf; ++i) {
+        if (append_grid(grids[i], faces[i], tol, ang, maxPoints)) gridded[i] = 1;
+        else { grids[i] = MeshOut(); rest.Add(faces[i]); restAt.push_back(i); }
+    }
+    SmTArray<SmTessellationFailure> fails;
+    SmTessellationReport rep;
+    std::vector<std::vector<SmPolyFace*>> by;
+    SmPolyBrep* pb = nullptr;
+    SmBrep* copy = nullptr;
+    SmTArray<SmFace*> copies;
+    struct Own { SmPolyBrep*& p; SmBrep*& b; ~Own() { delete p; delete b; } } own{pb, copy};
+    if (rest.GetSize() == nf) {
+        wl::check(SmApiTessellate(b, pb, p, TRUE, &fails, &rep), "SmApiTessellate");
+        by = polyfaces_by_face(pb, faces);
+    } else if (rest.GetSize()) {
+        copy = new (*SmApiGetOrCreateContext()) SmBrep();
+        wl::check(b->CopyFaces(rest, copy, &copies, FALSE), "SmBrep::CopyFaces");
+        if (copies.GetSize() != rest.GetSize()) throw std::runtime_error("displayMesh: copying the faces lost some");
+        wl::check(SmApiTessellate(copy, pb, p, TRUE, &fails, &rep), "SmApiTessellate");
+        const auto byCopy = polyfaces_by_face(pb, copies);
+        by.assign(nf + 1, {});
+        for (unsigned k = 0; k < restAt.size(); ++k) by[restAt[k]] = byCopy[k];
+    }
+    MeshOut o;
+    for (unsigned i = 0; i < nf; ++i) {
+        const uint32_t start = o.T.size();
+        if (gridded[i]) {
+            const uint32_t off = o.V.size() / 3;
+            o.V.insert(o.V.end(), grids[i].V.begin(), grids[i].V.end());
+            o.N.insert(o.N.end(), grids[i].N.begin(), grids[i].N.end());
+            for (uint32_t t : grids[i].T) o.T.push_back(t + off);
+            grids[i] = MeshOut();
+        } else {
+            const auto k = std::find(restAt.begin(), restAt.end(), i) - restAt.begin();
+            append_polyfaces(o, by[i], copy ? copies[k] : faces[i]);
+        }
+        o.G.push_back(start);
+        o.G.push_back(o.T.size() - start);
+    }
+    val r = mesh_js(o, fails, false);
+    r.set("gridded", typed(gridded));
+    return r;
+    WL_END("displayMesh")
 }
 /**
  * Every edge of a Brep as a polyline, in the Brep's edge order: { lines (Float32Array: segment end pairs, xyz),
@@ -782,6 +1055,7 @@ EMSCRIPTEN_BINDINGS(wasmlib_objects) {
     function("faceNormal", &faceNormal);
     function("facePoint", &facePoint);
     function("mesh", &mesh);
+    function("displayMesh", &displayMesh);
     function("edgeLines", &edgeLines);
     function("mirror", &mirror);
     function("transformMatrix", &transformMatrix);
