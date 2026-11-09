@@ -39,6 +39,23 @@ inline double face_sense(const SmFace* f) {
     const SmRegion* r = up->GetShell()->GetRegion();
     return r == b->GetInfiniteRegion() || (r && r->IsVoid() == TRUE) ? 1.0 : -1.0;
 }
+/** a point on the face: one inside it, or — for a sliver SMLib can't find a point inside (a triangle a tenth of a
+ *  millimetre long) — the middle of its corners, which on a flat or nearly flat sliver lies on it */
+inline SmVector3d face_point(const SmFace* f) {
+    SmVector3d q;
+    if (SmApiFaceInternalPoint(f, q) == SM_SUCCESS) return q;
+    SmTArray<SmEdge*> es;
+    f->GetEdges(es);
+    SmVector3d s(0, 0, 0);
+    int n = 0;
+    for (ULONG i = 0; i < es.GetSize(); ++i) {
+        SmVertex *a = nullptr, *b = nullptr;
+        es[i]->GetVertices(a, b);
+        for (const SmVertex* v : {a, b}) if (v) { const SmVector3d p = v->GetPoint(); s.x += p.x; s.y += p.y; s.z += p.z; n++; }
+    }
+    if (!n) wl::check(SM_ERR, "SmApiFaceInternalPoint");
+    return SmVector3d(s.x / n, s.y / n, s.z / n);
+}
 /** the outward normal at the face point nearest p */
 inline SmVector3d face_normal_near(const SmFace* f, const SmVector3d& p, SmVector3d* where = nullptr) {
     const SmSurface* s = f->GetSurface();

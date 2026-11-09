@@ -546,7 +546,7 @@ val faceNormal(const val& h, const val& p) {
     const SmFace* f = wl::ptr<SmFace>(h);
     SmVector3d q;
     if (wl::present(p)) q = wl::v3(p);
-    else wl::check(SmApiFaceInternalPoint(f, q), "SmApiFaceInternalPoint");
+    else q = face_point(f);
     SmVector3d where;
     const SmVector3d n = face_normal_near(f, q, &where);
     val o = val::object();

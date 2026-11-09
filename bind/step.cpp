@@ -97,8 +97,7 @@ public:
     /** the surface under a face; `same` says whether its natural normal points out of the material */
     int surface(const SmFace* f, bool& same) {
         const SmSurface* s = f->GetSurface();
-        SmVector3d q;
-        wl::check(SmApiFaceInternalPoint(f, q), "SmApiFaceInternalPoint");
+        const SmVector3d q = face_point(f);
         const SmVector3d out = face_normal_near(f, q);
         SmVector3d nat;  // the written surface's own normal at q
         int id = 0;
