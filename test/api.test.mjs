@@ -112,11 +112,12 @@ const quad = (o, du, dv) => {
 };
 const cubeFaces = [quad([0, 0, 0], [0, 1, 0], [1, 0, 0]), quad([0, 0, 1], [1, 0, 0], [0, 1, 0]), quad([0, 0, 0], [1, 0, 0], [0, 0, 1]),
   quad([0, 1, 0], [0, 0, 1], [1, 0, 0]), quad([0, 0, 0], [0, 0, 1], [0, 1, 0]), quad([1, 0, 0], [0, 1, 0], [0, 0, 1])];
-const fromFaces = W.brepFromFaces(cubeFaces, 1e-6);
+const fromFaces = W.brepFromFaces(cubeFaces, 1e-6, { areas: [0, 1] });
 check("brepFromFaces: a closed solid", fromFaces.solid && fromFaces.faces === 6 && fromFaces.failed.length === 0 && !!W.SmApiBrepIsManifoldSolid(fromFaces.brep));
 check("brepFromFaces: its volume", near(vol(fromFaces.brep), 1000, 1e-6), String(vol(fromFaces.brep)));
 check("brepFromFaces: faces stitched (12 edges)", W.brepTopology(fromFaces.brep).edges.length === 12);
-try { W.brepFromFaces([{ ...cubeFaces[0], surface: { ...cubeFaces[0].surface, U: [-1, 0, 1, 2] } }], 1e-6); check("brepFromFaces: unclamped knots refused", false); }
+check("brepFromFaces: the areas asked for, and only those", near(fromFaces.areas[0], 100, 1e-6) && near(fromFaces.areas[1], 100, 1e-6) && fromFaces.areas.slice(2).every((a) => Number.isNaN(a)), JSON.stringify(fromFaces.areas));
+try { W.brepFromFaces([{ ...cubeFaces[0], surface: { ...cubeFaces[0].surface, U: [-1, 0, 1, 2] } }], 1e-6, null); check("brepFromFaces: unclamped knots refused", false); }
 catch (e) { check("brepFromFaces: unclamped knots refused, saying so", /aren't clamped/.test(e.message), e.message); }
 W.destroy(hollow); W.destroy(fromFaces.brep);
 

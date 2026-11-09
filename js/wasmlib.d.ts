@@ -113,7 +113,7 @@ export interface Objects {
    * `cornerDeg` closed with a mitre. Inputs left alone; the solid is yours.
    */
   sweepPath(profile: Ptr<"SmCurve">[], path: Ptr<"SmCurve">[], tol: number, cornerDeg: number): Ptr<"SmBrep">;
-  brepFromFaces(faces: { surface: { p: number; q: number; U: number[]; V: number[]; nu: number; nv: number; P: number[]; W: number[] | null }; reversed: boolean; loops: { curves: { p: number; U: number[]; P: number[]; W: number[] | null; from?: V3; to?: V3; along?: boolean }[]; senses: number[] }[] }[], tol: number): { brep: Ptr<"SmBrep">; solid: boolean; faces: number; failed: number[] };
+  brepFromFaces(faces: { surface: { p: number; q: number; U: number[]; V: number[]; nu: number; nv: number; P: number[]; W: number[] | null }; reversed: boolean; loops: { curves: { p: number; U: number[]; P: number[]; W: number[] | null; from?: V3; to?: V3; along?: boolean }[]; senses: number[] }[] }[], tol: number, opts: { areas?: number[] } | null): { brep: Ptr<"SmBrep">; solid: boolean; faces: number; failed: number[]; areas?: number[] };
   /** a Brep's bounding box, quick and close: the control nets' box, with the round faces that reach outside the rest
    *  (whose nets bulge — a turned cylinder's by up to two fifths of its radius) tightened, from their edges where that's exact */
   brepBox(b: Ptr<"SmBrep">): [V3, V3];

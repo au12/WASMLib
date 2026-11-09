@@ -124,8 +124,10 @@ SmVector3d edge_at(const SmEdge* e, double f) {
 /**
  * Glue every pair of free (lamina) edges that lie on top of each other — same ends, same points a quarter, half and
  * three quarters along (either way round) — vertices first, then the edges. True when no free edge is left over.
+ * `nest`: let SMLib work out regions as it goes (when the last edge closes the shell, it finds which side is outside
+ * by firing a ray at it, and sorts the faces round every edge) — not needed when the caller splits the regions itself.
  */
-bool glue_matching(SmBrep* brep, double tol) {
+bool glue_matching(SmBrep* brep, double tol, bool nest = true) {
     SmTArray<SmEdge*> all;
     brep->GetEdges(all);
     struct E { SmEdge* e; SmVector3d a, b, q1, q2, q3; bool used; };
@@ -153,7 +155,7 @@ bool glue_matching(SmBrep* brep, double tol) {
             SmVertex* b2 = same ? be : bs;     // and at A's end
             if (b1 != as && brep->GlueVertices(as, b1) != SM_SUCCESS) return false;
             if (b2 != ae && b2 != as && ae != as && brep->GlueVertices(ae, b2) != SM_SUCCESS) return false;
-            if (brep->GlueEdgesGeneral(A.e, same ? SM_OT_SAME : SM_OT_OPPOSITE, 0.0, TRUE, B.e) != SM_SUCCESS) return false;
+            if (brep->GlueEdgesGeneral(A.e, same ? SM_OT_SAME : SM_OT_OPPOSITE, 0.0, nest ? TRUE : FALSE, B.e) != SM_SUCCESS) return false;
             A.used = B.used = true;
             break;
         }
@@ -181,7 +183,7 @@ const SmBSplineCurve* as_bspline(const SmCurve* c, SmCurve*& own) {
  * ends are the profile and its turned copy. Returns { brep, volume, steps }: the volume exactly (the profile's area ×
  * how far it moved along the axis), and how many fitted steps the turn took.
  */
-val screwSweep(const val& curves, const val& originV, const val& axisV, const val& moveV, double angleDeg, double tol) {
+val screw_sweep(const val& curves, const val& originV, const val& axisV, const val& moveV, double angleDeg, double tol, bool fast) {
     WL_BEGIN
     const SmContext* ctx = SmApiGetOrCreateContext();
     const SmVector3d O = wl::v3(originV), n = unit(wl::v3(axisV)), T = wl::v3(moveV);
@@ -279,9 +281,38 @@ val screwSweep(const val& curves, const val& originV, const val& axisV, const va
             // sweep the same helices, and each end face is bounded by copies of its side faces' edges), so they're
             // glued directly — SMLib's general stitch searches and measures every pair (most of the time here, on
             // a long thread). If any edge is left without its partner, the general stitch does it after all.
-            const bool glued = glue_matching(brep, tol);
-            if (!glued) wl::check(brep->StitchAndOrient(), "SmBrep::StitchAndOrient");
-            else {
+            // WASMLib: which side of the closed shell is outside is known too — the start face's outside faces back
+            // along the move — so the edges are glued without SMLib's region tracking (which, as the last edge
+            // closes the shell, fires a ray at the whole long thread face to find the outside, and sorts the faces
+            // round every edge), and the shell's inside is made a region of its own from the start face's inner
+            // side. If that doesn't give a closed solid, it's all done again the general way.
+            bool glued = false, split = false;
+            if (fast && startFaces.GetSize() == 1) {
+                const SmVector3d out = scl(n, height > 0 ? -1.0 : 1.0);
+                SmVector3d N;
+                const SmExtent2d dom = startFaces[0]->GetSurface()->GetNaturalUVDomain();
+                const SmStatus ns = SmApiEvaluateSurfaceNormal(startFaces[0]->GetSurface(), SmVector2d((dom.GetMin().x + dom.GetMax().x) / 2, (dom.GetMin().y + dom.GetMax().y) / 2), N);
+                SmFaceuse* up = startFaces[0]->GetUpwardFaceuse();
+                if (ns == SM_SUCCESS && up && std::fabs(dot(unit(N), out)) > 0.5 && glue_matching(brep, tol, false)) {
+                    SmFaceuse* inner = dot(N, out) > 0 ? up->GetMate() : up;
+                    SmShell* newShell = nullptr;
+                    SmRegion* newRegion = nullptr;
+                    SmBoolean solid = FALSE;
+                    if (inner && brep->TestClosureSplitRegion(FALSE, inner, newShell, newRegion) == SM_SUCCESS && newRegion
+                        && SmApiBrepIsManifoldSolid(brep, solid) == SM_SUCCESS && solid) split = glued = true;
+                }
+            }
+            if (!split && fast) {
+                // (the general way: all of it again, in a new Brep)
+                delete brep; brep = nullptr;
+                cleanup(); profs.clear();
+                return screw_sweep(curves, originV, axisV, moveV, angleDeg, tol, false);
+            }
+            if (!split) {
+                glued = glue_matching(brep, tol);
+                if (!glued) wl::check(brep->StitchAndOrient(), "SmBrep::StitchAndOrient");
+            }
+            {
                 SmBoolean maybeOpen = FALSE;
                 wl::check(brep->OrientTrimmedSurfaces(TRUE, maybeOpen, FALSE, nullptr), "SmBrep::OrientTrimmedSurfaces");
             }
@@ -295,6 +326,9 @@ val screwSweep(const val& curves, const val& originV, const val& axisV, const va
         } catch (...) { delete brep; throw; }
     } catch (...) { cleanup(); throw; }
     WL_END("screwSweep")
+}
+val screwSweep(const val& curves, const val& originV, const val& axisV, const val& moveV, double angleDeg, double tol) {
+    return screw_sweep(curves, originV, axisV, moveV, angleDeg, tol, true);
 }
 
 /** one new Brep holding copies of all of these, side by side — no intersecting: for Breps that don't touch */
@@ -438,19 +472,115 @@ SmBSplineSurface* nurbs_surface(const val& s) {
 }
 
 /**
+ * A face's trim curves worked out here, for a face SMLib wouldn't make from its 3D curves (they stray off its surface
+ * by more than its tolerance — a fitted patch, a file whose edges and faces don't quite agree): each curve sampled,
+ * each sample put on the surface (its closest point there), and a cubic through those in the surface's parameters.
+ * Steps across a closed surface's seam are taken the short way round. The face's edges then lie on its own surface,
+ * and the stitch closes the gaps to the faces next to it.
+ */
+SmBSplineCurve* uv_trim(const SmSurface* srf, const SmCurve* c, bool closedU, bool closedV, const SmExtent2d& dom) {
+    const SmExtent1d iv = c->GetNaturalInterval();
+    const auto* bs = dynamic_cast<const SmBSplineCurve*>(c);
+    const int n = std::max(8, std::min(96, 4 * int(bs ? bs->GetNumberControlPoints() : 4)));
+    SmTArray<SmPoint3d> uv;
+    const double W = dom.GetMax().x - dom.GetMin().x, H = dom.GetMax().y - dom.GetMin().y;
+    // the closest point by Newton's method from a nearby one (The NURBS Book 6.1): each sample starts from the last
+    auto newton = [&](const SmPoint3d& p, SmPoint2d& q) -> bool {
+        for (int it = 0; it < 12; ++it) {
+            SmVector3d D[9];
+            if (srf->Evaluate(q, 2, 2, TRUE, TRUE, TRUE, D) != SM_SUCCESS) return false;
+            const SmVector3d r = sub(D[0], p), Su = D[3], Sv = D[1], Suu = D[6], Suv = D[4], Svv = D[2];
+            const double f = dot(Su, r), g = dot(Sv, r);
+            const double a = dot(Su, Su) + dot(r, Suu), b = dot(Su, Sv) + dot(r, Suv), d = dot(Sv, Sv) + dot(r, Svv);
+            const double det = a * d - b * b;
+            if (!(std::fabs(det) > 1e-300)) return false;
+            const double du = (d * f - b * g) / det, dv = (a * g - b * f) / det;
+            q.x -= du; q.y -= dv;
+            if (closedU) { while (q.x < dom.GetMin().x) q.x += W; while (q.x > dom.GetMax().x) q.x -= W; }
+            else q.x = std::min(std::max(q.x, dom.GetMin().x), dom.GetMax().x);
+            if (closedV) { while (q.y < dom.GetMin().y) q.y += H; while (q.y > dom.GetMax().y) q.y -= H; }
+            else q.y = std::min(std::max(q.y, dom.GetMin().y), dom.GetMax().y);
+            if (std::fabs(du) < 1e-12 * std::max(1.0, W) && std::fabs(dv) < 1e-12 * std::max(1.0, H)) return true;
+        }
+        return true;   // (close enough after a dozen steps: checked below against the global answer's distance)
+    };
+    // (how far a sample's closest point may be before the global search is asked instead: a step and a half along the curve)
+    SmPoint3d a0, a1;
+    c->EvaluatePoint(iv.GetMin(), a0); c->EvaluatePoint(iv.GetMax(), a1);
+    const double reach = 1.5 * std::max(a0.DistanceBetween(a1), 1e-9) / n + 1e-9;
+    SmPoint2d prev;
+    for (int k = 0; k <= n; ++k) {
+        const double t = iv.GetMin() + (iv.GetMax() - iv.GetMin()) * double(k) / n;
+        SmPoint3d p, q;
+        if (c->EvaluatePoint(t, p) != SM_SUCCESS) return nullptr;
+        SmPoint2d best;
+        bool have = false;
+        if (k) {
+            best = prev;
+            SmPoint3d on;
+            if (newton(p, best) && srf->EvaluatePoint(best, on) == SM_SUCCESS && on.DistanceBetween(p) <= reach) have = true;
+        }
+        if (!have) {
+            SmTArray<SmPoint2d> uvs;
+            double d = 0;
+            if (SmApiSurfaceClosestPoint(srf, p, q, uvs, d) != SM_SUCCESS || !uvs.GetSize()) return nullptr;
+            best = uvs[0];
+            if (k) {
+                // (of the parameters for this point, the one nearest the last)
+                double bd = HUGE_VAL;
+                for (ULONG i = 0; i < uvs.GetSize(); ++i) { const double dd = std::hypot(uvs[i].x - prev.x, uvs[i].y - prev.y); if (dd < bd) { bd = dd; best = uvs[i]; } }
+            }
+        }
+        prev = best;
+        // (a closed surface: the seam stepped over the short way round)
+        if (k) {
+            const SmPoint3d& last = uv[k - 1];
+            if (closedU) { while (best.x - last.x > 0.5 * W) best.x -= W; while (last.x - best.x > 0.5 * W) best.x += W; }
+            if (closedV) { while (best.y - last.y > 0.5 * H) best.y -= H; while (last.y - best.y > 0.5 * H) best.y += H; }
+        }
+        uv.Add(SmPoint3d(best.x, best.y, 0));
+    }
+    SmBSplineCurve* out = nullptr;
+    SmTArray<SmVector3d> none;
+    if (SmBSplineCurve::CreateInterpolatingCurve(*SmApiGetOrCreateContext(), SM_CP_CHORDLENGTH, 2, 3, uv, none, nullptr, FALSE, out) != SM_SUCCESS) return nullptr;
+    return out;
+}
+
+/**
  * A solid from faces made elsewhere. `faces`: [{ surface, reversed, loops: [{ curves, senses }] }] — each face's
  * surface (NURBS), whether the material is on the side its normal points away from (`reversed`), and its boundary:
  * the outer loop first, running anticlockwise seen from the material's outside, then the holes, each a chain of
  * curves (NURBS, `senses[i]` -1 where curve i runs against the loop). A seam is listed twice, once each way.
- * Each face is made on its own, then they're stitched along the edges they share and turned outward. Returns
- * { brep, solid: closed manifold solid?, faces: how many faces were made, failed: indexes of faces that couldn't be }.
+ * Each face is made on its own — from its 3D curves, or when SMLib won't (they stray off the surface) from trim
+ * curves worked out on the surface (uv_trim) — then they're stitched along the edges they share, within `tol` (and
+ * ten times that for what's left), and turned outward. `opts`: null, or { areas: [indexes of faces] } to have those
+ * faces' areas worked out as made (before the stitch). Returns { brep, solid: closed manifold solid?, faces: how many
+ * faces were made, failed: indexes of faces that couldn't be, areas (with opts.areas): one per face, NaN for the
+ * rest and for those that failed }.
  */
-val brepFromFaces(const val& faces, double tol) {
+val brepFromFaces(const val& faces, double tol, const val& opts) {
     WL_BEGIN
     const SmContext* ctx = SmApiGetOrCreateContext();
     SmBrep* brep = new (*ctx) SmBrep();
     val failed = val::array();
+    // which faces' areas to work out: opts.areas = their indexes (an area of a big B-spline patch takes long)
+    const bool wantAreas = wl::present(opts) && wl::present(opts["areas"]);
+    std::vector<char> measured;
+    if (wantAreas) {
+        const val a = opts["areas"];
+        const unsigned na = a["length"].as<unsigned>(), nf = faces["length"].as<unsigned>();
+        measured.assign(nf, 0);
+        for (unsigned i = 0; i < na; ++i) { const unsigned k = a[i].as<unsigned>(); if (k < nf) measured[k] = 1; }
+    }
+    val areas = val::array();
     int made = 0;
+    auto measure = [&](unsigned fi, SmFace* face) {
+        if (!wantAreas) return;
+        if (!measured[fi]) { areas.set(fi, NAN); return; }
+        double a = NAN;
+        if (face && SmApiFaceComputeArea(face, 1e-4, a) != SM_SUCCESS) a = NAN;
+        areas.set(fi, a);
+    };
     try {
         const unsigned nf = faces["length"].as<unsigned>();
         for (unsigned fi = 0; fi < nf; ++fi) {
@@ -524,16 +654,35 @@ val brepFromFaces(const val& faces, double tol) {
             SmTArray<SmPoint3d> noPoints;
             if (!loops.GetSize()) {   // no boundary: the whole surface (a full sphere or torus)
                 const SmStatus st = brep->CreateFaceInRegionFromSurface(nullptr, srf, srf->GetNaturalUVDomain(), newShell, newFace);
-                if (st == SM_SUCCESS && newFace) made++;
-                else failed.call<void>("push", fi);
+                if (st == SM_SUCCESS && newFace) { made++; measure(fi, newFace); }
+                else { failed.call<void>("push", fi); measure(fi, nullptr); }
                 continue;
             }
-            // (MakeFaceWithCurves takes the surface and curves over, whether or not it succeeds)
-            const SmStatus st = brep->MakeFaceWithCurves(nullptr, loops, &curves, nullptr, orients, noPoints, srf,
-                srf->GetNaturalUVDomain(), f["reversed"].as<bool>() ? SM_OT_OPPOSITE : SM_OT_SAME,
-                newRegion, newShell, newFace);
-            if (st == SM_SUCCESS && newFace) made++;
-            else failed.call<void>("push", fi);
+            // (kept for the second try: MakeFaceWithCurves takes the surface and curves over, whether or not it succeeds)
+            SmTArray<SmCurve*> copies;
+            for (ULONG k = 0; k < curves.GetSize(); ++k) { SmCurve* cc = nullptr; if (curves[k]->Copy(*ctx, cc) == SM_SUCCESS) copies.Add(cc); }
+            SmBSplineSurface* srf2 = new (*ctx) SmBSplineSurface(*srf);
+            const SmOrientType side = f["reversed"].as<bool>() ? SM_OT_OPPOSITE : SM_OT_SAME;
+            SmStatus st = brep->MakeFaceWithCurves(nullptr, loops, &curves, nullptr, orients, noPoints, srf,
+                srf->GetNaturalUVDomain(), side, newRegion, newShell, newFace);
+            if ((st != SM_SUCCESS || !newFace) && copies.GetSize() == curves.GetSize()) {
+                // WASMLib: the curves stray off the surface: trim curves worked out on it instead (uv_trim)
+                const SmExtent2d dom = srf2->GetNaturalUVDomain();
+                const bool cu = srf2->IsClosed(dom, SM_SP_U) == TRUE, cv = srf2->IsClosed(dom, SM_SP_V) == TRUE;
+                SmTArray<SmBSplineCurve*> uvs;
+                bool ok = true;
+                for (ULONG k = 0; k < copies.GetSize() && ok; ++k) { SmBSplineCurve* u = uv_trim(srf2, copies[k], cu, cv, dom); if (u) uvs.Add(u); else ok = false; }
+                newRegion = nullptr; newShell = nullptr; newFace = nullptr;
+                if (ok) {
+                    // (MakeFaceWithCurves takes the trim curves and the surface over)
+                    st = brep->MakeFaceWithCurves(nullptr, loops, nullptr, &uvs, orients, noPoints, srf2, dom, side, newRegion, newShell, newFace);
+                    srf2 = nullptr;
+                } else { for (ULONG k = 0; k < uvs.GetSize(); ++k) delete uvs[k]; }
+            }
+            for (ULONG k = 0; k < copies.GetSize(); ++k) delete copies[k];
+            delete srf2;
+            if (st == SM_SUCCESS && newFace) { made++; measure(fi, newFace); }
+            else { failed.call<void>("push", fi); measure(fi, nullptr); }
         }
         // the faces were made apart: sew them along their shared edges, and turn them all outward
         wl::check(brep->StitchAndOrient(tol > 0 ? tol : -0.1), "SmBrep::StitchAndOrient");
@@ -544,6 +693,7 @@ val brepFromFaces(const val& faces, double tol) {
         o.set("solid", bool(solid));
         o.set("faces", made);
         o.set("failed", failed);
+        if (wantAreas) o.set("areas", areas);
         return o;
     } catch (...) { delete brep; throw; }
     WL_END("brepFromFaces")

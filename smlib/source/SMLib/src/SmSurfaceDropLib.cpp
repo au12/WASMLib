@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
+// Changed by WASMLib (https://github.com/au12/WASMLib) for speed: each change is marked "WASMLib:" below and
+// listed in smlib/README.md.
 
 /**********************************************************************//**
 * FILE NAME --- SmSurfaceDropLib.cpp
@@ -23,6 +25,9 @@
 #include <SmOffsetSurface.h>
 #include <SmAssertArray.h>
 #include <SmSurfaceDropCurve.h>
+#include <SmCone.h>
+#include <SmSphere.h>
+#include <NL_Geometry.h>
 
 #ifdef SM_DEBUG_CODE
 #include <SmBrep.h>
@@ -4140,6 +4145,193 @@ SmBoolean bDebugMe = FALSE ;
 } // end SmDropPt::IterateToBoundary
 
 /*******************************************************************//**
+WASMLib: a curve lying on a cylinder, a cone or a ball, dropped onto it in closed form.
+
+DropCurve traces a curve onto a surface point by point, each point found by a numerical solve, then checks the
+result by sampling it against the curve again (SurfaceCurveMaxDistanceBetween). On a cylinder, a cone or a ball the
+point is known in closed form: the surface's own STEP inversion gives its angle round the axis and its height (or
+latitude), and the NURBS parameters follow from those. So the curve is sampled at evenly spaced parameters and each
+sample put on the surface that way (at a ball's pole, taking its neighbour's angle round the axis); the drop curve is the straight line between the ends when every sample lies on
+it (a line along a cylinder or cone), otherwise a cubic B-spline through them in the curve's own parameters — each
+checked halfway between the samples, with twice as many samples if it strays more than a tenth of the tolerance.
+
+Only for curves that lie on the surface (every sample within the tolerance) and inside the domain, away from a ball's
+poles, crossing the seam nowhere but at their ends: anything else (and anything that doesn't settle within 129
+samples) returns FALSE and is traced as before.
+***********************************************************************/
+static SmBoolean wl_DropOnRevolution(const SmSurface * pSrf, const SmContext & crContext, const SmExtent2d & crUVDomain,
+                                     const SmCurve & crCurve, const SmExtent1d & crInterval, double dTol,
+                                     double & rdMaxDropToSurf, double & rdMaxApproxDev, SmTArray<SmBSplineCurve*> & rUVCurves)
+{
+  const ULONG lType = pSrf->GetType();
+  const SmCone   * pCone   = (lType == SmCone_TYPE || lType == SmCylinder_TYPE) ? static_cast<const SmCone*>(pSrf) : NULL;
+  const SmSphere * pSphere = lType == SmSphere_TYPE ? static_cast<const SmSphere*>(pSrf) : NULL;
+  if((!pCone && !pSphere) || !(dTol > 0)) return FALSE;
+  const double t0 = crInterval.GetMin(), t1 = crInterval.GetMax();
+  if(!(t1 - t0 > SM_EFF_ZERO)) return FALSE;
+  const SmExtent2d sNatural = pSrf->GetNaturalUVDomain();
+  const double dU = sNatural.XLength(), dV = sNatural.YLength();
+  // a curve point → its NURBS parameters on the surface, and how far the curve is from it there; `rSeam`: it's on the
+  // surface's seam (its parameter there could be either end of the domain)
+  auto drop = [&](double t, SmPoint3d & rP, SmPoint2d & rUV, double & rDist, int & rSeam) -> SmBoolean {
+    if(crCurve.EvaluatePoint(t, rP) != SM_SUCCESS) return FALSE;
+    SmPoint2d sStep;
+    SmLocationType eLoc = SM_LT_INTERIOR;
+    const SmStatus st = pCone ? pCone->STEPInversion(pCone->GetSTEPUVDomain(), rP, dTol, sStep, eLoc)
+                              : pSphere->STEPInversion(pSphere->GetSTEPUVDomain(), rP, dTol, sStep, eLoc);
+    if(st != SM_SUCCESS || eLoc == SM_LT_EXTERIOR || eLoc == SM_LT_UV_SEAM) return FALSE;
+    rSeam = eLoc == SM_LT_U_SEAM ? 1 : eLoc == SM_LT_V_SEAM ? 2 : eLoc == SM_LT_POLE ? 3 : 0;
+    if((pCone ? pCone->ConvertUVFromSTEPToNURBS(sStep, rUV) : pSphere->ConvertUVFromSTEPToNURBS(sStep, rUV)) != SM_SUCCESS) return FALSE;
+    SmPoint3d sOn;
+    if(pSrf->EvaluatePoint(rUV, sOn) != SM_SUCCESS) return FALSE;
+    rDist = sOn.DistanceBetween(rP);
+    return rDist <= dTol;
+  };
+  // a parameter on the seam is at whichever end of the domain its neighbour is nearer; at a ball's pole, where its
+  // angle round the axis could be anything, it's its neighbour's
+  auto snap = [&](SmPoint2d & rQ, int iSeam, const SmPoint2d & crNear) {
+    if(iSeam == 0) return;
+    const SmBoolean bSwap = (pCone && pCone->GetSwapUV()) || (pSphere && pSphere->GetSwapUV());
+    if(iSeam == 3) { if(bSwap) rQ.y = crNear.y; else rQ.x = crNear.x; return; }
+    // (which NURBS direction the seam runs across: the one whose two ends meet)
+    const SmBoolean bU = (iSeam == 1) != bSwap;
+    double & x = bU ? rQ.x : rQ.y;
+    const double lo = bU ? sNatural.GetMin().x : sNatural.GetMin().y, hi = bU ? sNatural.GetMax().x : sNatural.GetMax().y;
+    const double near = bU ? crNear.x : crNear.y;
+    if(smos_Fabs(x - lo) < smos_Fabs(x - hi)) { if(smos_Fabs(near - hi) < smos_Fabs(near - lo)) x = hi; else x = lo; }
+    else                                      { if(smos_Fabs(near - lo) < smos_Fabs(near - hi)) x = lo; else x = hi; }
+  };
+  const double dUTol = 1e-9 * (dU > dV ? (dU > 1 ? dU : 1) : (dV > 1 ? dV : 1));
+  SmTArray<SmPoint2d> sUV;
+  SmTArray<double> sT;
+  double dMaxDrop = 0.0;
+  // samples at n + 1 evenly spaced parameters (kept from one round to the next: n doubles)
+  auto sample = [&](ULONG n) -> SmBoolean {
+    SmTArray<SmPoint2d> sNewUV; SmTArray<double> sNewT; SmTArray<int> sSeam;
+    for(ULONG k = 0; k <= n; k++)
+      {
+        const double t = k == n ? t1 : t0 + (t1 - t0) * double(k) / double(n);
+        SmPoint3d sP; SmPoint2d sQ; double d = 0; int iSeam = 0;
+        if(!drop(t, sP, sQ, d, iSeam)) return FALSE;
+        if(iSeam && k != 0 && k != n) return FALSE;              // (crossing the seam: traced)
+        if(d > dMaxDrop) dMaxDrop = d;
+        sNewUV.Add(sQ); sNewT.Add(t); sSeam.Add(iSeam);
+      }
+    if(sSeam[0]) snap(sNewUV[0], sSeam[0], sNewUV[1]);
+    if(sSeam[n]) snap(sNewUV[n], sSeam[n], sNewUV[n - 1]);
+    for(ULONG k = 0; k <= n; k++)
+      {
+        const SmPoint2d & q = sNewUV[k];
+        if(   q.x < crUVDomain.GetMin().x - dUTol || q.x > crUVDomain.GetMax().x + dUTol
+           || q.y < crUVDomain.GetMin().y - dUTol || q.y > crUVDomain.GetMax().y + dUTol) return FALSE;
+        if(k && (smos_Fabs(q.x - sNewUV[k - 1].x) > 0.25 * dU || smos_Fabs(q.y - sNewUV[k - 1].y) > 0.25 * dV)) return FALSE;
+      }
+    sUV = sNewUV; sT = sNewT;
+    return TRUE;
+  };
+  // how far a candidate drop curve's image strays from the curve, halfway between the samples (and at the samples
+  // themselves, for the straight line)
+  auto deviation = [&](SmBSplineCurve * pUV, SmBoolean bAtSamples, double & rDev) -> SmBoolean {
+    rDev = 0.0;
+    const ULONG n = sT.GetSize() - 1;
+    for(ULONG k = 0; k < n + (bAtSamples ? 1 : 0); k++)
+      {
+        const double t = bAtSamples ? sT[k] : 0.5 * (sT[k] + sT[k + 1]);
+        SmPoint3d sP, sQ3, sOn;
+        if(crCurve.EvaluatePoint(t, sP) != SM_SUCCESS) return FALSE;
+        if(pUV->EvaluatePoint(t, sQ3) != SM_SUCCESS || pSrf->EvaluatePoint(SmPoint2d(sQ3.x, sQ3.y), sOn) != SM_SUCCESS) return FALSE;
+        const double dev = sOn.DistanceBetween(sP);
+        if(dev > rDev) rDev = dev;
+        if(!bAtSamples) { const double d = sOn.DistanceBetween(sP); (void)d; }
+      }
+    return TRUE;
+  };
+  // 1. a straight line in the parameters (a generator of a cylinder or a cone, a circle round its axis that the
+  //    surface's own parameters run along evenly)
+  if(!sample(8)) return FALSE;
+  {
+    gw_CPOINT Pw[2];
+    Pw[0].x = sUV[0].x; Pw[0].y = sUV[0].y; Pw[0].z = 0; Pw[0].w = NL_NOW;
+    Pw[1].x = sUV[8].x; Pw[1].y = sUV[8].y; Pw[1].z = 0; Pw[1].w = NL_NOW;
+    double U[4] = { t0, t0, t1, t1 };
+    SmBSplineCurve * pLine = new (crContext) SmBSplineCurve(2, 1, 3, 1, Pw, U, &crContext);
+    double dDev = 0, dMid = 0;
+    if(pLine && deviation(pLine, TRUE, dDev) && dDev <= 0.1 * dTol && deviation(pLine, FALSE, dMid) && dMid <= 0.1 * dTol)
+      {
+        rUVCurves.Add(pLine);
+        rdMaxDropToSurf = dMaxDrop;
+        rdMaxApproxDev  = dDev > dMid ? dDev : dMid;
+        return TRUE;
+      }
+    delete pLine;
+  }
+  // 2. a cubic through more and more samples
+  for(ULONG n = 4; n <= 128; n *= 2)
+    {
+      if(!sample(n)) return FALSE;
+      // the cubic through them, in the curve's own parameters (knots by averaging: The NURBS Book A9.1)
+      const ULONG p = 3, m = n + p + 1, N = n + 1;
+      SmTArray<double> U; U.SetSize(m + 1);
+      for(ULONG i = 0; i <= p; i++) { U[i] = t0; U[m - i] = t1; }
+      for(ULONG j = 1; j + p <= n; j++) { double a = 0; for(ULONG i = j; i < j + p; i++) a += sT[i]; U[j + p] = a / p; }
+      // the collocation matrix is banded (each row non-zero on p + 1 columns): dense here, it's at most 129 × 129
+      SmTArray<double> A; A.SetSize(N * N); for(ULONG i = 0; i < N * N; i++) A[i] = 0;
+      SmTArray<double> Bx, By; Bx.SetSize(N); By.SetSize(N);
+      for(ULONG k = 0; k < N; k++)
+        {
+          const double t = sT[k];
+          ULONG s = p;
+          if(t >= U[n + 1]) s = n; else { while(s < n && t >= U[s + 1]) s++; }
+          double Nb[4], left[4], right[4]; Nb[0] = 1;
+          for(ULONG j = 1; j <= p; j++)
+            {
+              left[j] = t - U[s + 1 - j]; right[j] = U[s + j] - t;
+              double saved = 0;
+              for(ULONG r = 0; r < j; r++) { const double tmp = Nb[r] / (right[r + 1] + left[j - r]); Nb[r] = saved + right[r + 1] * tmp; saved = left[j - r] * tmp; }
+              Nb[j] = saved;
+            }
+          for(ULONG j = 0; j <= p; j++) A[k * N + (s - p + j)] = Nb[j];
+          Bx[k] = sUV[k].x; By[k] = sUV[k].y;
+        }
+      SmBoolean bOk = TRUE;
+      for(ULONG c = 0; c < N && bOk; c++)
+        {
+          ULONG piv = c; for(ULONG r = c + 1; r < N; r++) if(smos_Fabs(A[r * N + c]) > smos_Fabs(A[piv * N + c])) piv = r;
+          if(smos_Fabs(A[piv * N + c]) < 1e-14) { bOk = FALSE; break; }
+          if(piv != c) { for(ULONG j = 0; j < N; j++) { const double x = A[c * N + j]; A[c * N + j] = A[piv * N + j]; A[piv * N + j] = x; }
+                         double x = Bx[c]; Bx[c] = Bx[piv]; Bx[piv] = x; x = By[c]; By[c] = By[piv]; By[piv] = x; }
+          for(ULONG r = c + 1; r < N; r++)
+            {
+              const double f = A[r * N + c] / A[c * N + c]; if(f == 0) continue;
+              for(ULONG j = c; j < N; j++) A[r * N + j] -= f * A[c * N + j];
+              Bx[r] -= f * Bx[c]; By[r] -= f * By[c];
+            }
+        }
+      if(!bOk) return FALSE;
+      SmTArray<gw_CPOINT> Pw; Pw.SetSize(N);
+      for(ULONG c = N; c-- > 0;)
+        {
+          double x = Bx[c], y = By[c];
+          for(ULONG j = c + 1; j < N; j++) { x -= A[c * N + j] * Pw[j].x; y -= A[c * N + j] * Pw[j].y; }
+          Pw[c].x = x / A[c * N + c]; Pw[c].y = y / A[c * N + c]; Pw[c].z = 0; Pw[c].w = NL_NOW;
+        }
+      SmBSplineCurve * pUV = new (crContext) SmBSplineCurve(2, ULONG(N - 1), ULONG(m), short(p), &Pw[0], &U[0], &crContext);
+      if(!pUV) return FALSE;
+      double dDev = 0;
+      if(!deviation(pUV, FALSE, dDev)) { delete pUV; return FALSE; }
+      if(dDev <= 0.1 * dTol)
+        {
+          rUVCurves.Add(pUV);
+          rdMaxDropToSurf = dMaxDrop;
+          rdMaxApproxDev  = dDev;
+          return TRUE;
+        }
+      delete pUV;
+    }
+  return FALSE;
+}
+
+/*******************************************************************//**
 PURPOSE: This method creates a parameter space image of a 3D curve
     normal projection to the surface (projection along surface normals).
 
@@ -4249,6 +4441,15 @@ static ULONG lCount = 0 ; lCount++ ;
   SmBoolean bDegenSurfU            = sUVDomain.XLength() < SM_EFF_ZERO ;
   SmBoolean bDegenSurfV            = sUVDomain.XLength() < SM_EFF_ZERO ;
   SmBoolean bDropDomainIsContained = sUVDomain.IsContainedBy(GetNaturalUVDomain(), SM_EFF_ZERO) ;
+
+  // WASMLib: on a cylinder, a cone or a ball, a curve lying on it is dropped in closed form (see wl_DropOnRevolution)
+  if(bDropDomainIsContained && !bKeepAllDropCurves
+     && wl_DropOnRevolution(this, crContext, sUVDomain, cr3dCurve, sInterval, (double)sApproxTol3d,
+                            rdMaxDropToSurf, rdMaxApproxDev, rUVCurves))
+    {
+      sCleanUVCrvs.Clear() ;
+      return SM_SUCCESS ;
+    }
   
   // no work - degen surf domain
   if(   bDegenSurfU

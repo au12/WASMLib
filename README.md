@@ -11,8 +11,8 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   [`smlib/README.md`](smlib/README.md): surface derivatives summed the textbook way (and, for degrees 1–3, in code
   written for the degree), booleans that skip face pairs, coplanar edges, edges and vertices that can't meet, deleting
   faces and closing regions without walking the whole shell each time, loop lists gathered in one pass, volumes that
-  integrate the volume rather than every mass property, and point tests on flat faces that skip loops the point is
-  nowhere near. The same answers (volumes within the accuracy asked for); in DadCAD a knurled knob builds 3.9× faster
+  integrate the volume rather than every mass property, point tests on flat faces that skip loops the point is
+  nowhere near, and trim curves on cylinders, cones and balls worked out in closed form rather than traced. The same answers (volumes within the accuracy asked for); in DadCAD a knurled knob builds 3.9× faster
   than on the unchanged SMLib, engraved text 2.2–2.4×, a plate of 48 holes 1.7×, a filleted box 1.4×, a shell 1.3×.
 - **Fillets SMLib got wrong, fixed in it.** A fillet surface that ran on past an edge's end but not past its start
   (so the mirror image of a fillet that worked failed), and a closed surface's seam at a fillet's end taken for a side
@@ -27,7 +27,9 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
 - **Solids SMLib has no call for** (`bind/build.cpp`): a **screw sweep** — a closed profile moved along an axis while
   it turns about it (threads, helical gears, twisted vases) — as one B-spline face per profile curve, fitted to the
   true screw surface within a tolerance you give, its faces glued along the edges known to meet (SMLib's general stitch
-  searches every pair: most of the time on a long thread) and its volume returned exactly; **`mergeDisjoint`**, Breps
+  searches every pair: most of the time on a long thread), its solid closed off without SMLib's search for the outside
+  (which side is out is known from the way it moves: an M8 bolt's thread 350 → 15 ms natively) and its volume returned
+  exactly; **`mergeDisjoint`**, Breps
   copied side by side into one with no intersecting (SM_API's list union drops pieces of disjoint ones); and
   **`brepBox`**, a bounding box as quick as SMLib's own but tight on turned round faces, whose control nets bulge up
   to two fifths of a radius outside them (SMLib's tight box is ~800× slower on a plate with 48 holes).
@@ -39,8 +41,10 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   plane halfway between the two directions. Volumes and positions match OpenCascade's on straight, bent, cornered,
   closed and free-form paths, with the profile on the path or off it.
 - **Shapes from elsewhere** (`brepFromFaces`) — faces given as NURBS surfaces with loops of NURBS curves, made one
-  by one and stitched into a solid: how DadCAD brings STEP files (read in TypeScript) and OpenCascade's shapes into
-  SMLib. Knots must be clamped; a solid with hollows is built whole and the hollows taken away.
+  by one and stitched into a solid: how DadCAD brings STEP files (read in TypeScript), OpenCascade's old BRep files and
+  solids rebuilt from meshes into SMLib. A face whose curves stray off its surface (a fitted patch held to fitted
+  edges) is made from trim curves worked out on the surface instead; the areas of the faces you name come back as
+  made, to check them by. Knots must be clamped; a solid with hollows is built whole and the hollows taken away.
 - **A STEP (AP214) writer** — SMLib has none. Planes, cylinders, cones, spheres, tori, lines, circles and ellipses
   are written as such, everything else as (rational) B-splines from SMLib's own control nets, with names and
   colours; a solid with hollows as one solid with voids. Checked by reading the files back into OpenCascade (volumes
@@ -91,6 +95,7 @@ source /path/to/emsdk/emsdk_env.sh       # Emscripten 7.0
 tools/build.sh                           # → dist/wasmlib.mjs, dist/wasmlib.wasm
 tools/build.sh test                      # also upstream's SM_API test suite, run in Node
 tools/build.sh native                    # the same suite built natively (the reference)
+tools/native/build.sh                    # native replays of real calls, to profile (build-native/replay shell|holes|bolt…)
 npm test                                 # WASMLib's own checks of its JavaScript API
 ```
 
