@@ -128,7 +128,7 @@ export interface Objects {
    * points per face (`maxPoints`, default 400 000). Not watertight: for the view, not for export. `gridded`: 1 for each
    * face sampled on a grid.
    */
-  displayMesh(b: Ptr<"SmBrep">, params: TessellationParams | null, grid: { tol: number; angleDeg: number; maxPoints?: number }): MeshArrays & { gridded: Uint8Array };
+  displayMesh(b: Ptr<"SmBrep">, params: TessellationParams | null, grid: { tol: number; angleDeg: number; maxPoints?: number; sealed?: boolean }): MeshArrays & { gridded: Uint8Array };
   /** every edge as a polyline (segment end pairs), grouped by edge in the Brep's edge order */
   edgeLines(b: Ptr<"SmBrep">, angleTolDeg: number): { lines: Float32Array; groups: Uint32Array };
 

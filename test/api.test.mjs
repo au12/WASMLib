@@ -107,6 +107,16 @@ check("screw sweep: mesh volume agrees", near(meshVol(sw.brep), Math.PI * 5, 5e-
   check("display mesh: every sampled triangle faces out; nearly all within the 0.02 asked (+ float rounding), none past 0.1", total > 1000 && lost < total / 100 && out === total && far.length < total / 50 && off < 0.1, `${out}/${total}, ${off.toFixed(4)} off (${far.length} past 0.03: ${far.slice(0, 8)}), ${lost} lost, ${ms.toFixed(0)} ms`);
   const gm = W.mesh(th.brep, { chordHeightTol: 0.1, curveAngleTolDeg: 20, surfaceAngleTolDeg: 20 });
   check("display mesh: the general mesh is left as it was (for export)", gm.groups.length === dm.groups.length && !("gridded" in gm));
+  // sealed (for export): the grid stitched to the ends' own points — watertight, welded by position
+  const sm = W.displayMesh(th.brep, { chordHeightTol: 0.1, curveAngleTolDeg: 20, surfaceAngleTolDeg: 20 }, { tol: 0.02, angleDeg: 20, sealed: true });
+  {
+    const V = sm.vertices, T = sm.triangles, id = new Map(), w = [];
+    for (let i = 0; i < V.length / 3; i++) { const k = `${V[3 * i]},${V[3 * i + 1]},${V[3 * i + 2]}`; if (!id.has(k)) id.set(k, id.size); w.push(id.get(k)); }
+    const he = new Map(); let bad = 0;
+    for (let t = 0; t < T.length; t += 3) { const v = [w[T[t]], w[T[t + 1]], w[T[t + 2]]]; for (let k = 0; k < 3; k++) { const e = `${v[k]},${v[(k + 1) % 3]}`; he.set(e, (he.get(e) ?? 0) + 1); } }
+    for (const [e, n] of he) { const [x, y] = e.split(","); if (n !== 1 || he.get(`${y},${x}`) !== 1) bad++; }
+    check("display mesh, sealed: the screw side gridded and the whole mesh watertight (every edge once each way)", sm.gridded[side] === 1 && bad === 0, `${bad} edges not paired`);
+  }
   W.destroy(th.brep); W.destroy(prof);
 }
 const swBox = W.brepBox(sw.brep);
