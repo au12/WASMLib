@@ -29,7 +29,11 @@ intersections, healing, tessellation. WASMLib carries its `SMLib` and `SM_API` s
   and the grid as fine as their curvature needs, and only the other faces are tessellated. SMLib's tessellator works in
   the parameter plane, and on a thread, whose two parameter directions both run round the axis 2° apart, it folds a
   third of the triangles (dark stripes along the thread): an M8 × 30 thread drew in 700 ms with folds, 31 ms without.
-  Not watertight where the grid meets its neighbours, so it's for the view; exports keep `mesh`.
+  Not watertight where the grid meets its neighbours, so it's for the view — unless `grid.sealed` is set: then each
+  grid's rim is stitched to the points its neighbours were tessellated at (seams taken from the grid itself, corners
+  shared exactly), so the mesh is watertight and fit to export. Only the faces beside a grid are tessellated for it, not
+  the whole Brep: an M8 × 30 bolt exports in 0.44 s instead of 2.2 s, with under 2% of its thread's triangles folded
+  (6–32% from the mesher). A grid that can't be sealed falls back to the whole Brep tessellated.
 - **Solids SMLib has no call for** (`bind/build.cpp`): a **screw sweep** — a closed profile moved along an axis while
   it turns about it (threads, helical gears, twisted vases) — as one B-spline face per profile curve, fitted to the
   true screw surface within a tolerance you give, its faces glued along the edges known to meet (SMLib's general stitch
