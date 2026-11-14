@@ -888,7 +888,7 @@ bool append_grid(MeshOut& o, const SmFace* f, double tol, double ang, double max
  * file stays watertight. False (the caller keeps SMLib's triangles) when the face has no single outline or a grid too
  * coarse to have an inside.
  */
-bool append_grid_sealed(MeshOut& o, const MeshOut& g, const GridInfo& gi, const std::vector<SmPolyFace*>& pfs) {
+bool append_grid_sealed(MeshOut& o, const MeshOut& g, const GridInfo& gi, const std::vector<SmPoint3d>& cands) {
     const ULONG nu = gi.nu, nv = gi.nv;
     if (nu < 3 || nv < 3) return false;
     // the grid's edge as a closed run of points, (0,0) → (nu,0) → (nu,nv) → (0,nv), and how far round each is
@@ -928,40 +928,34 @@ bool append_grid_sealed(MeshOut& o, const MeshOut& g, const GridInfo& gi, const 
     // the points down its seam — each placed on every side it lies on (a seam point on both of its sides, a corner of
     // the face on the two sides it ends) and put in order round the rim. (The tessellation's own triangles can meet
     // T-wise inside a face, so its edges don't say what's outline.)
-    struct OP { SmPolyVertex* v; double s; };
+    struct OP { int c; double s; };  // c: the candidate (−1: a grid point down a seam)
     std::vector<OP> ops;
     {
-        std::unordered_set<SmPolyVertex*> seen;
-        SmTArray<SmPolyEdge*> loop;
-        for (SmPolyFace* pf : pfs) {
-            SmPolyLoop* pl = pf->GetOuterPolyLoop(); if (!pl) continue;
-            loop.RemoveAll(); pl->GetPolyEdges(loop);
-            for (ULONG j = 0; j < loop.GetSize(); ++j) {
-                SmPolyVertex* v = loop[j]->GetStartPolyVertex();
-                if (!seen.insert(v).second) continue;
-                const SmPoint3d p3 = v->GetPoint();
-                const SmVector3d q(p3.x, p3.y, p3.z);
-                const bool shared = v->GetFacesRef().GetSize() > 1;
-                if (!shared) continue;  // (a seam's own points come from the grid: below)
-                std::vector<double> at;
-                double nearest = 1e300, nearAt = 0;
-                for (int sd = 0; sd < 4; ++sd) {
-                    const bool seamSide = (vSeam && (sd == 0 || sd == 2)) || (uSeam && (sd == 1 || sd == 3));
-                    if (!shared && !seamSide) continue;
-                    const auto [d, sAt] = onSide(q, sd);
-                    if (d < nearest) { nearest = d; nearAt = sAt; }
-                    // (a point shared with a face beside it lies on its edge: it goes on more than one side only where
-                    // sides truly meet, at a corner — a thread's seam starts almost along its end, a hair apart)
-                    if (d < (shared ? 1e-5 * (1 + len(q)) : eps)) {
-                        double sm = std::fmod(sAt, double(R));
-                        bool dup = false;
-                        for (double x : at) { double dd = std::abs(x - sm); if (std::min(dd, R - dd) < 1e-7) dup = true; }
-                        if (!dup) at.push_back(sm);
-                    }
+        // (only points near the face's box are looked at)
+        SmVector3d lo(1e300, 1e300, 1e300), hi(-1e300, -1e300, -1e300);
+        for (const auto& q : rp) { lo.x = std::min(lo.x, q.x); lo.y = std::min(lo.y, q.y); lo.z = std::min(lo.z, q.z); hi.x = std::max(hi.x, q.x); hi.y = std::max(hi.y, q.y); hi.z = std::max(hi.z, q.z); }
+        for (size_t ci = 0; ci < cands.size(); ++ci) {
+            const SmVector3d q(cands[ci].x, cands[ci].y, cands[ci].z);
+            if (q.x < lo.x - eps || q.y < lo.y - eps || q.z < lo.z - eps || q.x > hi.x + eps || q.y > hi.y + eps || q.z > hi.z + eps) continue;
+            // (a point of a face beside it lies on its edge: on more than one side only where sides truly meet, at a
+            // corner — a thread's seam starts almost along its end, a hair apart)
+            std::vector<double> at;
+            double nearest = 1e300, nearAt = 0;
+            for (int sd = 0; sd < 4; ++sd) {
+                // (a seam's own points come from the grid; a point of a face beside it lands on a seam only at a corner)
+                const bool seamSide = (vSeam && (sd == 0 || sd == 2)) || (uSeam && (sd == 1 || sd == 3));
+                const auto [d, sAt] = onSide(q, sd);
+                if (!seamSide && d < nearest) { nearest = d; nearAt = sAt; }
+                if (d < 1e-5 * (1 + len(q))) {
+                    double sm = std::fmod(sAt, double(R));
+                    bool dup = false;
+                    for (double x : at) { double dd = std::abs(x - sm); if (std::min(dd, R - dd) < 1e-7) dup = true; }
+                    if (!dup) at.push_back(sm);
                 }
-                if (shared && at.empty()) at.push_back(std::fmod(nearAt, double(R)));
-                for (double sm : at) ops.push_back({v, sm});
             }
+            if (nearest > eps) continue;  // not on this face's edge
+            if (at.empty()) at.push_back(std::fmod(nearAt, double(R)));
+            for (double sm : at) ops.push_back({int(ci), sm});
         }
     }
     // down a seam the outline is the grid's own row (the same points on both of its sides, so they meet exactly, and a
@@ -969,7 +963,7 @@ bool append_grid_sealed(MeshOut& o, const MeshOut& g, const GridInfo& gi, const 
     std::vector<std::pair<double, SmVector3d>> seamPts;
     if (vSeam) for (ULONG i = 1; i < nu; ++i) { const SmVector3d q = G(i, 0); seamPts.push_back({double(i), q}); seamPts.push_back({double(nu + nv + (nu - i)), q}); }
     if (uSeam) for (ULONG j = 1; j < nv; ++j) { const SmVector3d q = G(0, j); seamPts.push_back({double(nu + j), q}); seamPts.push_back({double(2 * nu + nv + (nv - j)), q}); }
-    for (const auto& sp : seamPts) ops.push_back({nullptr, sp.first});
+    for (const auto& sp : seamPts) ops.push_back({-1, sp.first});
     if (ops.size() < 4) return false;
     std::stable_sort(ops.begin(), ops.end(), [](const OP& x, const OP& y) { return x.s < y.s; });
     // the inside ring, (1,1) → (nu-1,1) → (nu-1,nv-1) → (1,nv-1), each placed at the rim point it faces
@@ -995,7 +989,7 @@ bool append_grid_sealed(MeshOut& o, const MeshOut& g, const GridInfo& gi, const 
     std::vector<double> os(ops.size());
     for (size_t k = 0; k < ops.size(); ++k) {
         SmPoint3d q;
-        if (ops[k].v) q = ops[k].v->GetPoint();
+        if (ops[k].c >= 0) q = cands[ops[k].c];
         else { const double sk = ops[k].s; for (const auto& sp : seamPts) if (sp.first == sk) { q = SmPoint3d(sp.second.x, sp.second.y, sp.second.z); break; } }
         os[k] = ops[k].s;
         // (the normal of the nearest rim point: the outline's own may be the neighbour's)
@@ -1036,7 +1030,12 @@ bool append_grid_sealed(MeshOut& o, const MeshOut& g, const GridInfo& gi, const 
             // (but never so far out of step that a run gets ahead by more than a grid cell)
             if (std::abs(sa - sb) < 1.0) stepA = dA <= dB;
         }
-        if (stepA) { tri(A0, ob + uint32_t((o0 + a + 1) % no), B0); ++a; }
+        if (stepA) {
+            // (a corner point placed on both its sides comes twice in a row: nothing between the two)
+            const uint32_t A1 = ob + uint32_t((o0 + a + 1) % no);
+            if (o.V[A0 * 3] != o.V[A1 * 3] || o.V[A0 * 3 + 1] != o.V[A1 * 3 + 1] || o.V[A0 * 3 + 2] != o.V[A1 * 3 + 2]) tri(A0, A1, B0);
+            ++a;
+        }
         else { tri(A0, gi_(ring[(r0 + b + 1) % nr].first, ring[(r0 + b + 1) % nr].second), B0); ++b; }
     }
     return true;
@@ -1073,25 +1072,6 @@ val displayMesh(const val& h, const val& params, const val& grid) {
         if (append_grid(grids[i], faces[i], tol, ang, maxPoints, &infos[i])) gridded[i] = 1;
         else { grids[i] = MeshOut(); rest.Add(faces[i]); restAt.push_back(i); }
     }
-    if (sealed) {
-        // every face tessellated together (the outline points the gridded faces must meet)
-        SmTArray<SmTessellationFailure> fails;
-        SmTessellationReport rep;
-        SmPolyBrep* pb = nullptr;
-        struct OwnP { SmPolyBrep*& p; ~OwnP() { delete p; } } ownp{pb};
-        wl::check(SmApiTessellate(b, pb, p, TRUE, &fails, &rep), "SmApiTessellate");
-        const auto by = polyfaces_by_face(pb, faces);
-        MeshOut o;
-        for (unsigned i = 0; i < nf; ++i) {
-            const uint32_t start = o.T.size();
-            if (!gridded[i] || !append_grid_sealed(o, grids[i], infos[i], by[i])) { gridded[i] = 0; append_polyfaces(o, by[i], faces[i]); }
-            o.G.push_back(start);
-            o.G.push_back(o.T.size() - start);
-        }
-        val r = mesh_js(o, fails, false);
-        r.set("gridded", typed(gridded));
-        return r;
-    }
     SmTArray<SmTessellationFailure> fails;
     SmTessellationReport rep;
     std::vector<std::vector<SmPolyFace*>> by;
@@ -1111,10 +1091,43 @@ val displayMesh(const val& h, const val& params, const val& grid) {
         by.assign(nf + 1, {});
         for (unsigned k = 0; k < restAt.size(); ++k) by[restAt[k]] = byCopy[k];
     }
+    // sealed: the points of the faces tessellated (the ones beside each gridded face among them), for the grids to meet
+    std::vector<SmPoint3d> cands;
+    if (sealed && pb) {
+        SmTArray<SmPolyFace*> pfs;
+        pb->GetPolyFaces(pfs);
+        std::unordered_set<SmPolyVertex*> seen;
+        SmTArray<SmPolyEdge*> loop;
+        for (ULONG i = 0; i < pfs.GetSize(); ++i) {
+            SmPolyLoop* pl = pfs[i]->GetOuterPolyLoop(); if (!pl) continue;
+            loop.RemoveAll(); pl->GetPolyEdges(loop);
+            for (ULONG j = 0; j < loop.GetSize(); ++j) { SmPolyVertex* v = loop[j]->GetStartPolyVertex(); if (seen.insert(v).second) cands.push_back(v->GetPoint()); }
+        }
+    }
+    // (each grid sealed first: if one can't be, the whole Brep is meshed as `mesh` does — a part sealed and a part not
+    // wouldn't meet)
+    std::vector<MeshOut> sealedOut(sealed ? nf : 0);
+    if (sealed) for (unsigned i = 0; i < nf; ++i) if (gridded[i] && !append_grid_sealed(sealedOut[i], grids[i], infos[i], cands)) {
+        SmTArray<SmTessellationFailure> f2; SmTessellationReport r2; SmPolyBrep* p2 = nullptr;
+        struct Own2 { SmPolyBrep*& p; ~Own2() { delete p; } } own2{p2};
+        wl::check(SmApiTessellate(b, p2, p, TRUE, &f2, &r2), "SmApiTessellate");
+        const auto all = polyfaces_by_face(p2, faces);
+        MeshOut m;
+        for (unsigned k = 0; k < nf; ++k) { const uint32_t st = m.T.size(); append_polyfaces(m, all[k], faces[k]); m.G.push_back(st); m.G.push_back(m.T.size() - st); }
+        val r = mesh_js(m, f2, r2.outputManifold);
+        r.set("gridded", typed(std::vector<uint8_t>(nf, 0)));
+        return r;
+    }
     MeshOut o;
     for (unsigned i = 0; i < nf; ++i) {
         const uint32_t start = o.T.size();
-        if (gridded[i]) {
+        if (gridded[i] && sealed) {
+            const uint32_t off = o.V.size() / 3;
+            o.V.insert(o.V.end(), sealedOut[i].V.begin(), sealedOut[i].V.end());
+            o.N.insert(o.N.end(), sealedOut[i].N.begin(), sealedOut[i].N.end());
+            for (uint32_t t : sealedOut[i].T) o.T.push_back(t + off);
+            grids[i] = MeshOut(); sealedOut[i] = MeshOut();
+        } else if (gridded[i]) {
             const uint32_t off = o.V.size() / 3;
             o.V.insert(o.V.end(), grids[i].V.begin(), grids[i].V.end());
             o.N.insert(o.N.end(), grids[i].N.begin(), grids[i].N.end());
@@ -1127,6 +1140,9 @@ val displayMesh(const val& h, const val& params, const val& grid) {
         o.G.push_back(start);
         o.G.push_back(o.T.size() - start);
     }
+    // (sealed: the faces copied out to be tessellated can put a point a hair off zero where the face beside it has it
+    // at zero, −1.8e−15 against 0 — as floats, two points; flushed, one)
+    if (sealed) for (float& x : o.V) if (std::abs(x) < 1e-7f) x = 0.0f;
     val r = mesh_js(o, fails, false);
     r.set("gridded", typed(gridded));
     return r;
