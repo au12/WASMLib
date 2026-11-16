@@ -7,6 +7,8 @@ on:
 jobs:
   wasm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # publish the release when package.json's version is new
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,3 +28,26 @@ jobs:
         with:
           name: wasmlib
           path: dist/
+      # Bump "version" in package.json on main and this publishes release v<version> with the
+      # built dist/ attached. Notes come from CHANGELOG.md ("## <version>") or GitHub's generated notes.
+      - name: Publish release if the version is new
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="v$version"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release $tag already exists, nothing to do."
+            exit 0
+          fi
+          : > notes.md
+          if [ -f CHANGELOG.md ]; then
+            awk -v v="$version" '
+              /^## / { if (found) exit; h = $2; gsub(/[\[\]v]/, "", h); if (h == v) { found = 1; next } }
+              found
+            ' CHANGELOG.md > notes.md
+          fi
+          if [ -s notes.md ]; then notes=(--notes-file notes.md); else notes=(--generate-notes); fi
+          (cd dist && zip -qr "../wasmlib-$version.zip" .)
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$tag" "${notes[@]}" "wasmlib-$version.zip"
